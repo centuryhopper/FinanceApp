@@ -1,55 +1,107 @@
-using System.Text;
+using Going.Plaid;
+using Going.Plaid.Auth;
+using Going.Plaid.Entity;
+using Going.Plaid.Item;
+using Going.Plaid.Link;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Server.Models;
 
 namespace Server.Services;
 
 public class PlaidService
 {
-    private readonly HttpClient _http;
-    private readonly PlaidSettings _settings;
+    private readonly PlaidClient _client;
 
-    public PlaidService(HttpClient http, IOptions<PlaidSettings> options)
+    public PlaidService(IOptions<PlaidSettings> options)
     {
-        _http = http;
-        _settings = options.Value;
+        var settings = options.Value;
+
+        /*
+        new PlaidClientOptions
+        {
+            ClientId = settings.ClientId,
+            Secret = settings.Secret,
+            Environment = settings.Environment switch
+            {
+                "sandbox" => PlaidEnvironment.Sandbox,
+                "development" => PlaidEnvironment.Development,
+                "production" => PlaidEnvironment.Production,
+                _ => throw new ArgumentException("Invalid Plaid environment")
+            }
+        }
+        */
+
+        _client = new PlaidClient(
+            settings.Environment switch
+            {
+                "sandbox" => Going.Plaid.Environment.Sandbox,
+                "development" => Going.Plaid.Environment.Development,
+                "production" => Going.Plaid.Environment.Production,
+                _ => throw new ArgumentException("Invalid Plaid environment")
+            },
+            secret: settings.Secret,
+            clientId: settings.ClientId
+        );
     }
 
-    private string BaseUrl => _settings.Environment switch
+    public async Task<LinkTokenCreateResponse?> CreateLinkTokenAsync(string userId)
     {
-        "sandbox" => "https://sandbox.plaid.com",
-        "development" => "https://development.plaid.com",
-        "production" => "https://production.plaid.com",
-        _ => throw new Exception("Invalid Plaid environment")
-    };
-
-    public async Task<string> CreateLinkTokenAsync()
-    {
-        var payload = new
+        var response = await _client.LinkTokenCreateAsync(new LinkTokenCreateRequest
         {
-            client_id = _settings.ClientId,
-            secret = _settings.Secret,
-            user = new { client_user_id = Guid.NewGuid().ToString() },
-            client_name = "Plaid .NET Demo",
-            products = new[] { "auth", "transactions" },
-            country_codes = new[] { "US" },
-            language = "en"
+            ClientName = "Finance App",
+            Language = Language.English,
+            CountryCodes = new[] { CountryCode.Us },
+            User = new LinkTokenCreateRequestUser
+            {
+                ClientUserId = userId
+            },
+            Products = new[] { Products.Auth, Products.Transactions },
+            RedirectUri = null
+        });
+
+        if (response.IsSuccessStatusCode)
+        {
+            // return response.LinkToken;
+            return response;
+        }
+
+        throw new Exception("Failed to create link token: " + response.Error?.ErrorMessage);
+    }
+
+    public async Task<ItemPublicTokenExchangeResponse> ExchangePublicTokenAsync(string publicToken)
+    {
+        var request = new ItemPublicTokenExchangeRequest
+        {
+            PublicToken = publicToken
         };
 
-        Console.WriteLine(payload.client_id);
-        Console.WriteLine(payload.secret);
+        var response = await _client.ItemPublicTokenExchangeAsync(request);
 
-        var json = JsonConvert.SerializeObject(payload);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        if (response.IsSuccessStatusCode)
+        {
+            // Save response.AccessToken securely (e.g., to a DB or encrypted storage)
+            return response;
+        }
 
-        var response = await _http.PostAsync($"{BaseUrl}/link/token/create", content);
-        response.EnsureSuccessStatusCode();
-
-        var result = await response.Content.ReadAsStringAsync();
-        return result;
+        throw new Exception("Failed to exchange public token: " + response.Error?.ErrorMessage);
     }
+
+    public async Task<AuthGetResponse> GetAuthInfoAsync(string accessToken)
+    {
+        var request = new AuthGetRequest
+        {
+            AccessToken = accessToken
+        };
+
+        var response = await _client.AuthGetAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return response;
+        }
+
+        throw new Exception("Failed to retrieve auth info: " + response.Error?.ErrorMessage);
+    }
+
+
 }
-
-
-
