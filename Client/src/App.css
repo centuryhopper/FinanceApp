@@ -1,9 +1,23 @@
-#root {
+/* #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+} */
+
+/* css trick to debug */
+/* * {
+  outline: 1px solid red;
+} */
+
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
 }
+
+
 
 .logo {
   height: 6em;
@@ -39,4 +53,20 @@
 
 .read-the-docs {
   color: #888;
+}
+
+
+/* Sticky footer layout */
+html, body, #root {
+  height: 100%;
+}
+
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-content {
+  flex: 1;
 }

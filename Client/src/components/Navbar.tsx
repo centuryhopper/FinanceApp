@@ -1,11 +1,13 @@
-import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import './Navbar.css'
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
+    { name: "Home", href: "/" },
     { name: "Dashboard", href: "/dashboard" },
     { name: "Transactions", href: "/transactions" },
     { name: "Budgets", href: "/budgets" },
@@ -13,30 +15,38 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-white/30 border-b border-white/20">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <nav className="navbar navbar-expand-md bg-dark border-bottom border-secondary fixed-top shadow">
+      <div className="container-fluid px-4 py-2 d-flex justify-content-between align-items-center">
+
         {/* Hamburger - Mobile only */}
         <button
           onClick={() => setIsOpen(true)}
-          className="md:hidden text-gray-800 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
+          className="d-md-none btn btn-link text-white p-0"
           aria-label="Open menu"
         >
           <Menu size={28} />
         </button>
 
-        {/* Logo - Centered on desktop */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-xl tracking-widest uppercase text-blue-700 select-none pointer-events-none md:pointer-events-auto md:relative md:left-auto md:top-auto md:translate-x-0 md:translate-y-0">
-          <Link to="/">Personal Spending</Link>
+        {/* Logo */}
+        <div className="position-absolute top-50 start-50 translate-middle text-white fw-bold text-uppercase text-center d-md-none">
+          <Link to="/" className="text-white text-decoration-none">
+            Personal Spending
+          </Link>
+        </div>
+        <div className="d-none d-md-block text-white fw-bold text-uppercase">
+          <Link to="/" className="text-white text-decoration-none">
+            Personal Spending
+          </Link>
         </div>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex space-x-10 font-semibold text-gray-700">
+        <div className="d-none d-md-flex gap-4 fw-medium">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               to={link.href}
-              className="relative px-3 py-2 rounded-lg transition
-                hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:via-purple-600 hover:to-pink-500"
+              className="btn btn-dark text-white px-3 py-2"
+              style={{ whiteSpace: "nowrap" }}
             >
               {link.name}
             </Link>
@@ -48,13 +58,17 @@ const Navbar: React.FC = () => {
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            className="position-fixed top-0 start-0 w-100 h-100 bg-black bg-opacity-75"
+            style={{ backdropFilter: "blur(4px)" }}
             onClick={() => setIsOpen(false)}
           />
-          <aside className="fixed top-0 left-0 w-64 h-full bg-white shadow-lg p-6 flex flex-col space-y-6 z-60 animate-slide-in">
+          <aside
+            className="position-fixed top-0 start-0 bg-dark text-white p-4 d-flex flex-column gap-4 h-100 shadow animate-slide-in"
+            style={{ width: "250px", zIndex: 1050, overflowY: "auto" }}
+          >
             <button
               onClick={() => setIsOpen(false)}
-              className="self-end text-gray-700 hover:text-blue-600 focus:outline-none"
+              className="btn btn-link text-white align-self-end p-0"
               aria-label="Close menu"
             >
               <X size={28} />
@@ -64,24 +78,24 @@ const Navbar: React.FC = () => {
                 key={link.name}
                 to={link.href}
                 onClick={() => setIsOpen(false)}
-                className="text-lg font-semibold text-gray-800 hover:text-blue-600"
+                className="text-white text-decoration-none fs-5"
               >
                 {link.name}
               </Link>
             ))}
           </aside>
+
+          <style>{`
+            @keyframes slide-in {
+              from { transform: translateX(-100%); }
+              to { transform: translateX(0); }
+            }
+            .animate-slide-in {
+              animation: slide-in 0.3s ease forwards;
+            }
+          `}</style>
         </>
       )}
-
-      <style>{`
-        @keyframes slide-in {
-          from { transform: translateX(-100%); }
-          to { transform: translateX(0); }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease forwards;
-        }
-      `}</style>
     </nav>
   );
 };

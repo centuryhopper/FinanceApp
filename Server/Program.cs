@@ -36,6 +36,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Serve React static files
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 // Configure the HTTP request pipeline.
 // if (app.Environment.IsDevelopment())
 // {
@@ -43,7 +47,7 @@ var app = builder.Build();
 //     app.UseSwaggerUI();
 // }
 
-app.MapGet("/", () => "Plaid API is running");
+// app.MapGet("/", () => "Plaid API is running");
 
 app.UseHttpsRedirection();
 
@@ -51,5 +55,8 @@ app.UseAuthorization();
 app.UseCors(CLIENT);
 
 app.MapControllers();
+
+// Catch-all route to serve index.html for React routes
+app.MapFallbackToFile("index.html");
 
 app.Run();
