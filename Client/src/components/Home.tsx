@@ -27,7 +27,7 @@ function PlaidAuth({ publicToken }: { publicToken: string }) {
       });
     })();
     
-  }, []);
+  }, [publicToken]);
 
   return (<span>{publicToken}</span>);
 }
@@ -103,9 +103,10 @@ export default function Home() {
       // send public_token to server
       (async function () {
         
-        const accessToken = await axios.post('api/Plaid/exchange-public-token', {
-          publicToken: public_token
-        });
+        // const accessToken = await axios.post('api/Plaid/exchange-public-token', {
+        //   publicToken: public_token
+        // });
+        // console.log(accessToken);
       })();
     },
   });

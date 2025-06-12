@@ -8,6 +8,7 @@ import Settings from './components/Settings';
 import Transactions from './components/Transactions';
 import Footer from './components/Footer';
 import type { JSX } from 'react';
+import Login from './components/Login';
 
 export const App: (() => JSX.Element) = () => {
   return (
@@ -20,6 +21,7 @@ export const App: (() => JSX.Element) = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/" element={<Home />} />
           </Routes>
         </div>
