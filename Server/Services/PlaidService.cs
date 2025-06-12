@@ -44,6 +44,10 @@ public class PlaidService
         );
     }
 
+    /// <summary>
+    /// gets sent up to client app
+    /// </summary>
+    /// <returns></returns>
     public async Task<LinkTokenCreateResponse?> CreateLinkTokenAsync(string userId)
     {
         var response = await _client.LinkTokenCreateAsync(new LinkTokenCreateRequest

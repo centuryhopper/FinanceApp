@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 
-axios.defaults.baseURL = "http://localhost:5003"
+// axios.defaults.baseURL = "http://localhost:5003"
 
 /*
 
@@ -32,6 +32,65 @@ function PlaidAuth({ publicToken }: { publicToken: string }) {
   return (<span>{publicToken}</span>);
 }
 
+/*
+plaid api interaction steps:
+  - client asks server for link token
+  - server will ask plaid for link token to give to client
+  - client is now ready to open up plaid ui link and pass link token to plaid
+  - plaid will give a public token to client and client will send that public token to server 
+  - server sends that public token to plaid and if all goes well, then plaid will create an access token to send back to server
+  - server can then store that access token in the db and tie it to the currently logged in user. Send that access token to the client should for debugging purposes only and not in a real world app!!
+
+
+CHAT GPT summary:
+  ✅ Plaid API Integration Flow (Link Token → Access Token)
+🧩 Step-by-step:
+
+    Client → Server: "I want to link my bank account."
+
+        The client sends a request to the server to create a Link Token.
+
+    Server → Plaid: Create a Link Token
+
+        The server calls POST /link/token/create on Plaid’s API, optionally including:
+
+            user object (with unique user ID)
+
+            products, client_name, etc.
+
+    Server → Client: Send Link Token
+
+        Server returns the Link Token to the client.
+
+        The client uses this token to initialize Plaid Link (the UI popup).
+
+    Client → Plaid (via Link UI): User authenticates & links account
+
+        User interacts with the Plaid Link interface.
+
+        On success, Plaid returns a Public Token to the client.
+
+    Client → Server: Send Public Token
+
+        The client sends the Public Token to the server (e.g., via API).
+
+    Server → Plaid: Exchange Public Token for Access Token
+
+        Server calls POST /item/public_token/exchange with the Public Token.
+
+        Plaid responds with:
+
+            Access Token (long-lived)
+
+            Item ID (useful for tracking linked accounts)
+
+    Server: Store Access Token securely
+
+        Save the Access Token in your DB, tied to the authenticated user.
+
+        ⚠️ Do NOT send this back to the client (except in development/debug mode).
+
+*/
 
 export default function Home() {
   const [linkToken, setLinkToken] = useState('');
@@ -41,16 +100,17 @@ export default function Home() {
     token: linkToken,
     onSuccess: (public_token, _) => {
       setpublicToken(public_token);
-
       // send public_token to server
       (async function () {
-        await axios.post('api/Plaid/exchange-public-token', {
+        
+        const accessToken = await axios.post('api/Plaid/exchange-public-token', {
           publicToken: public_token
         });
       })();
     },
   });
 
+  // componentDidMount()
   useEffect(() => {
     (async function () {
       const response = await axios.get("api/Plaid/get-link-token");

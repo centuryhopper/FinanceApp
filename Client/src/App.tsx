@@ -7,8 +7,9 @@ import Navbar from './components/Navbar';
 import Settings from './components/Settings';
 import Transactions from './components/Transactions';
 import Footer from './components/Footer';
+import type { JSX } from 'react';
 
-function App() {
+export const App: (() => JSX.Element) = () => {
   return (
     <div className="app-wrapper bg-dark text-white">
       <BrowserRouter>

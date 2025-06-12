@@ -52,6 +52,7 @@ public class PlaidController : ControllerBase
     {
         try
         {
+            // TODO: store access token in db instead of returning it to the client!
             var accessToken = await _plaid.ExchangePublicTokenAsync(request.PublicToken);
             return Ok(new { access_token = accessToken });
         }
@@ -61,6 +62,8 @@ public class PlaidController : ControllerBase
         }
     }
 
+
+    
     [HttpGet("get-link-token")]
     public async Task<IActionResult> GetLinkToken()
     {
