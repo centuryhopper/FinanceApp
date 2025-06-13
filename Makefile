@@ -6,6 +6,7 @@ all: clean build copy run
 # Clean the wwwroot directory
 clean:
 	rm -rf ./Server/wwwroot
+	rm -rf ./Client/dist
 
 # Build the React client app
 build:

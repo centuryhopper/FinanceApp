@@ -1,6 +1,13 @@
 using Server.Services;
 using Server.Models;
 using Going.Plaid;
+using Microsoft.OpenApi.Models;
+using Server.Repositories;
+using Swashbuckle.AspNetCore.Filters;
+using Microsoft.EntityFrameworkCore;
+using Server.Contexts;
+using Server.Utils;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +22,42 @@ builder.Services.AddScoped<PlaidService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-// builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition(
+        "oauth2",
+        new OpenApiSecurityScheme
+        {
+            In = ParameterLocation.Header,
+            Name = "Authorization",
+            Type = SecuritySchemeType.ApiKey,
+        }
+    );
+
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
+});
+
+var configProvider = new ConfigProvider(builder.Environment, builder.Configuration);
+builder.Services.AddSingleton(configProvider);
+
+builder.Services.AddDbContext<FinanceAppDbContext>(options =>
+{
+    options.UseNpgsql(
+        configProvider.GetBudgetDBConnectionString
+    ).EnableSensitiveDataLogging();
+});
+
+
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+
+
+if (!builder.Environment.IsDevelopment())
+{
+    var port = System.Environment.GetEnvironmentVariable("PORT") ?? "8081";
+    builder.WebHost.UseUrls($"http://*:{port}");
+}
+
 
 const string CLIENT = "Allow_Clients";
 builder.Services.AddCors(options =>
@@ -26,10 +67,10 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("*")
+                .WithOrigins("http://localhost:5173")
                 .AllowAnyMethod()
-                .AllowAnyHeader();
-                // .AllowCredentials(); // If your mobile client uses credentials like cookies or auth headers
+                .AllowAnyHeader()
+                .AllowCredentials();
         }
     );
 });
@@ -41,16 +82,18 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
-// if (app.Environment.IsDevelopment())
-// {
-//     app.UseSwagger();
-//     app.UseSwaggerUI();
-// }
+if (app.Environment.IsDevelopment())
+{
+    app.UseWebAssemblyDebugging();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 // app.MapGet("/", () => "Plaid API is running");
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors(CLIENT);
 

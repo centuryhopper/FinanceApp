@@ -5,10 +5,10 @@ import type { HandyLoginModel, LoginPageProps } from "../types/LoginTypes";
 import "./LoginComponent.css";
 
 const LoginPage: React.FC<LoginPageProps> = ({
-  cooldownSeconds = 30,
+  cooldownSeconds = 5,
   maxAttempts = 5,
   noticeText = "",
-  redirectLink = "/",
+  // redirectLink = "/",
   loginCallback,
 }) => {
   const [model, setModel] = useState<HandyLoginModel>({
@@ -24,14 +24,14 @@ const LoginPage: React.FC<LoginPageProps> = ({
   const [isCoolingDown, setIsCoolingDown] = useState(false);
 
   const { secondsLeft, startTimer } = useCountDown({
-    timesUpCallback: () => {
+    onComplete: () => {
       // console.log("time is up");
       setIsCoolingDown(false);
       setAttempts(0);
       setErrMsg("");
       setAttemptsNotice("");
     },
-    repeatedCallback: () => {
+    onTick: () => {
       setErrMsg(
         `Too many attempts. Please wait ${secondsLeft} seconds before trying again.`
       );

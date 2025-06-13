@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
 
+type UseCountdownOptions = {
+  onComplete?: () => void; // Called when countdown reaches 0
+  onTick?: () => void; // Called every tick
+};
+
 export default function useCountDown({
-  timesUpCallback,
-  repeatedCallback,
-}: {
-  timesUpCallback?: () => void;
-  repeatedCallback?: () => void;
-}) {
-  
+  onComplete,
+  onTick,
+}: UseCountdownOptions) {
   const [secondsLeft, setSecondsLeft] = useState(0);
   useEffect(() => {
     if (secondsLeft <= 0) {
-      timesUpCallback && timesUpCallback();
+      onComplete && onComplete();
       return;
     }
 
-    repeatedCallback && repeatedCallback();
+    onTick && onTick();
 
     // delay one second
     const timeout = setTimeout(function () {
