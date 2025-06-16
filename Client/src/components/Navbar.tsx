@@ -1,24 +1,35 @@
 import { Menu, X } from "lucide-react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import './Navbar.css'
+import { useAuth } from "../contexts/AuthContext";
+import "./Navbar.css";
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Transactions", href: "/transactions" },
-    { name: "Budgets", href: "/budgets" },
-    { name: "Settings", href: "/settings" },
-    { name: "Login", href: "/login" },
-  ];
+  const { isAuthenticated } = useAuth();
+
+  // if (!isAuthenticated) return <div>You must log in</div>;
+
+  const navLinks = isAuthenticated
+    ? [
+        { name: "Home", href: "/" },
+        { name: "Dashboard", href: "/dashboard" },
+        { name: "Transactions", href: "/transactions" },
+        { name: "Budgets", href: "/budgets" },
+        { name: "Settings", href: "/settings" },
+        { name: "Logout", href: "/logout" },
+      ]
+    : [
+        {
+          name: "Login",
+          href: "/login",
+        },
+      ];
 
   return (
     <nav className="navbar navbar-expand-md bg-dark border-bottom border-secondary fixed-top shadow">
       <div className="container-fluid px-4 py-2 d-flex justify-content-between align-items-center">
-
         {/* Hamburger - Mobile only */}
         <button
           onClick={() => setIsOpen(true)}

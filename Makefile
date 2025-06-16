@@ -8,7 +8,7 @@ clean:
 	rm -rf ./Server/wwwroot
 	rm -rf ./Client/dist
 
-# Build the React client app
+# Build the Vue client app
 build:
 	cd ./Client && npm run build
 
@@ -17,6 +17,6 @@ copy:
 	cp -r ./Client/dist ./Server/wwwroot
 
 run:
-	cd ./Server/ && dotnet watch run
+	cd ./Server/ && dotnet run
 
 

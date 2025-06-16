@@ -25,7 +25,31 @@ public static class DTOMapper
             Roles = roles,
         };
     }
-    
+
+    public static PlaidItemDTO ToDTO(this Plaiditem obj)
+    {
+        return new()
+        {
+            Plaiditemid = obj.Plaiditemid,
+            Userid = obj.Userid,
+            Accesstoken = obj.Accesstoken,
+            Institutionname = obj.Institutionname,
+            Datelinked = obj.Datelinked,
+        };
+    }
+
+    public static Plaiditem ToEntity(this PlaidItemDTO dto)
+    {
+        return new()
+        {
+            Plaiditemid = dto.Plaiditemid,
+            Userid = dto.Userid,
+            Accesstoken = dto.Accesstoken,
+            Institutionname = dto.Institutionname,
+            Datelinked = dto.Datelinked,
+        };
+    }
+
     // public static ChaseTransactionsDTO ToChaseTransactionsDTO(this Transaction transaction)
     // {
     //     return new()

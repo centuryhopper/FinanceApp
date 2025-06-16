@@ -7,6 +7,22 @@ using Swashbuckle.AspNetCore.Filters;
 using Microsoft.EntityFrameworkCore;
 using Server.Contexts;
 using Server.Utils;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+
+// MUST HAVE IT LIKE THIS FOR NLOG TO RECOGNIZE DOTNET USER-SECRETS INSTEAD OF HARDCODED DELIMIT PLACEHOLDER VALUE FROM APPSETTINGS.JSON
+
+// #if DEBUG
+//     var logger = LogManager.Setup().LoadConfigurationFromFile("nlog_dev.config").GetCurrentClassLogger();
+// #else
+//     var logger = LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
+// #endif
+
+
+// try
+// {
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +31,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<PlaidSettings>(
     builder.Configuration.GetSection("Plaid"));
 builder.Services.AddPlaid(builder.Configuration.GetSection("Plaid"));
+
+// Add services to the container.
+// builder.Logging.ClearProviders();
+// builder.Host.UseNLog();
 
 builder.Services.AddHttpClient();
 
@@ -41,6 +61,30 @@ builder.Services.AddSwaggerGen(options =>
 var configProvider = new ConfigProvider(builder.Environment, builder.Configuration);
 builder.Services.AddSingleton(configProvider);
 
+builder
+    .Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = configProvider.JwtIssuer,
+            ValidAudience = configProvider.JwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(
+                    configProvider.JwtKey
+                )
+            ),
+        };
+    });
+
 builder.Services.AddDbContext<FinanceAppDbContext>(options =>
 {
     options.UseNpgsql(
@@ -50,6 +94,7 @@ builder.Services.AddDbContext<FinanceAppDbContext>(options =>
 
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IPlaidItemRepository, PlaidItemRepository>();
 
 
 if (!builder.Environment.IsDevelopment())
@@ -103,3 +148,13 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+// }
+//  catch (Exception ex)
+// {
+//     logger.Error(ex, "Stopped program because of exception: " + ex);
+//     throw ex;
+// }
+// finally {
+//     LogManager.Shutdown();
+// }

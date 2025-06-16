@@ -1,17 +1,18 @@
 // LoginPage.tsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useCountDown from "../hooks/useCountDown";
-import type { HandyLoginModel, LoginPageProps } from "../types/LoginTypes";
+import type { LoginModel, LoginPageProps } from "../types/LoginTypes";
 import "./LoginComponent.css";
 
 const LoginPage: React.FC<LoginPageProps> = ({
   cooldownSeconds = 5,
   maxAttempts = 5,
   noticeText = "",
-  // redirectLink = "/",
+  redirectLink = "/",
   loginCallback,
 }) => {
-  const [model, setModel] = useState<HandyLoginModel>({
+  const [model, setModel] = useState<LoginModel>({
     email: "",
     password: "",
     rememberMe: false,
@@ -22,6 +23,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
   const [attemptsNotice, setAttemptsNotice] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [isCoolingDown, setIsCoolingDown] = useState(false);
+  const navigate = useNavigate();
 
   const { secondsLeft, startTimer } = useCountDown({
     onComplete: () => {
@@ -54,8 +56,8 @@ const LoginPage: React.FC<LoginPageProps> = ({
     if (isCoolingDown) return;
 
     setLoading(true);
-    setErrMsg("");
-    setAttemptsNotice("");
+    // setErrMsg("");
+    // setAttemptsNotice("");
     setAttempts((prev) => prev + 1);
 
     const response = await loginCallback(model);
@@ -64,7 +66,6 @@ const LoginPage: React.FC<LoginPageProps> = ({
     if (!response.flag) {
       if (attempts + 1 >= maxAttempts) {
         setIsCoolingDown(true);
-        // setErrMsg(cooldownMessage)
         setAttemptsNotice("");
 
         // start timer here
@@ -77,8 +78,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
       return;
     }
 
-    // TODO: uncomment later when ready
-    // window.location.href = redirectLink;
+    navigate(redirectLink);
   };
 
   return (
