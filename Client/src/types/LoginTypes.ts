@@ -14,5 +14,5 @@ export type LoginPageProps = {
   maxAttempts?: number;
   noticeText?: string;
   redirectLink?: string;
-  loginCallback: (model: LoginModel) => Promise<LoginResponse>;
+  onLogin: (model: LoginModel) => Promise<LoginResponse>;
 };

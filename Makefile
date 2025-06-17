@@ -5,7 +5,7 @@ all: clean build copy run
 
 # Clean the wwwroot directory
 clean:
-	rm -rf ./Server/wwwroot
+	rm -rf ./Server/dist
 	rm -rf ./Client/dist
 
 # Build the Vue client app
@@ -14,9 +14,9 @@ build:
 
 # Copy the built files into the server's wwwroot
 copy:
-	cp -r ./Client/dist ./Server/wwwroot
+	cp -r ./Client/dist ./Server/dist
 
 run:
-	cd ./Server/ && dotnet run
+	cd ./Server/ && npm run dev
 
 
