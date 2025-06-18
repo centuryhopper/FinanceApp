@@ -14,19 +14,67 @@ class PlaidApiService {
   private client: PlaidApi;
 
   constructor() {
-    const env = process.env.PLAID_ENV || "sandbox";
+    const env =
+      process.env.PLAID_ENV === "production"
+        ? PlaidEnvironments.production
+        : PlaidEnvironments.sandbox;
 
     const config = new Configuration({
-      basePath: PlaidEnvironments.production,
+      basePath: env,
       baseOptions: {
         headers: {
           "PLAID-CLIENT-ID": process.env.PLAID_CLIENT_ID!,
-          "PLAID-SECRET": process.env.PLAID_SECRET!,
+          "PLAID-SECRET":
+            process.env.PLAID_ENV === "production"
+              ? process.env.PLAID_PRODUCTION_SECRET!
+              : process.env.PLAID_SANDBOX_SECRET!,
         },
       },
     });
 
     this.client = new PlaidApi(config);
+  }
+
+  async pollTransactions(accessToken: string, maxRetries = 5) {
+    let retries = 0;
+    let delayMs = 2000;
+
+    const start_date = moment().subtract(1, "year").format("YYYY-MM-DD");
+    const end_date = moment().format("YYYY-MM-DD");
+
+    const delay = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+
+    while (retries < maxRetries) {
+      try {
+        const res = await this.client.transactionsGet({
+          access_token: accessToken,
+          start_date: start_date,
+          end_date: end_date,
+          options: {
+            include_original_description: true,
+          },
+        });
+
+        return res.data.transactions; // success!
+      } catch (err: any) {
+        const errorCode = err?.response?.data?.error_code;
+        if (errorCode === "PRODUCT_NOT_READY") {
+          console.log(
+            `Attempt ${retries + 1}: Product not ready. Retrying in ${
+              delayMs / 1000
+            }s...`
+          );
+          await delay(delayMs);
+          delayMs *= 2; // exponential backoff
+          retries++;
+        } else {
+          throw err; // some other error
+        }
+      }
+    }
+
+    throw new Error("Exceeded max retries. Transactions still not ready.");
   }
 
   async getPast1YearsTransactions(accessToken: string) {

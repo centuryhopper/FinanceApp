@@ -51,15 +51,15 @@ router.post("/exchange-public-token", authenticateToken, async (req, res) => {
     datelinked: new Date(),
   });
 
-  console.log("response: " + JSON.stringify(response));
+  // console.log("response: " + JSON.stringify(response));
 
   // console.log(exchangedResponse.access_token);
 
-  const transactionsData = await plaidApiService.getPast1YearsTransactions(
+  const transactionsData = await plaidApiService.pollTransactions(
     exchangedResponse.access_token
   );
 
-  console.log("transactionsData", transactionsData);
+  // console.log("transactionsData", transactionsData);
 
   res.status(200).json({
     transactions: transactionsData,
