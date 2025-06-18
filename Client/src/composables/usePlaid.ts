@@ -10,7 +10,8 @@ export function usePlaid() {
       onSuccess: async (public_token, metadata) => {
         console.log("Plaid linked:", metadata);
 
-        const jwtToken = localStorage.getItem("token") ?? sessionStorage.getItem("token")
+        const jwtToken =
+          localStorage.getItem("token") ?? sessionStorage.getItem("token");
 
         const bankstuff = await axios.post(
           "/api/plaid/exchange-public-token",
@@ -26,6 +27,7 @@ export function usePlaid() {
       },
       onExit: (err, metadata) => {
         if (err) console.error("Plaid exited:", err);
+        if (metadata) console.log("metadata:", metadata);
       },
     });
 
