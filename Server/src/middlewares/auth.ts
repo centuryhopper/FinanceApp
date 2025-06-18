@@ -13,12 +13,12 @@ export const authenticateToken = (
     return;
   }
 
-  jwt.verify(token, process.env.JWT_SECRET as string, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET as string, (err, payload) => {
     if (err) {
       res.sendStatus(403);
       return;
     }
-    (req as any).user = user as JwtPayload; // Attach user claims
+    (req as any).payload = payload as JwtPayload; // Attach user claims
     next();
   });
 };

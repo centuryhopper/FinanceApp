@@ -28,7 +28,7 @@ router.post("/exchange-public-token", authenticateToken, async (req, res) => {
   );
 
   // console.log('req.user', req.user);
-  const userId = parseInt((req.user?.sub as string) || "0", 10);
+  const userId = parseInt((req.payload?.sub as string) || "0", 10);
 
   // console.log(userId);
 
