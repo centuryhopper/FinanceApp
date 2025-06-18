@@ -12,6 +12,12 @@ app.use(express.urlencoded({ extended: true }))
 app.use(rateLimiter)
 
 
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  next();
+});
+
+
 app.use('/api/account', accountRoutes)
 app.use('/api/plaid', plaidRoutes)
 
@@ -22,9 +28,10 @@ app.use('/api/plaid', plaidRoutes)
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // Catch-all route to index.html (for Vue router)
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, '../dist/index.html'));
-// });
+// must use this regex syntax for express v5+
+app.get(/(.*)/, (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
 
 export default app
   
