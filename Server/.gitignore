@@ -23,7 +23,7 @@ yarn-error.log*
 Thumbs.db
 
 # Build output (if you use a build step)
-dist/
+# dist/
 build/
 
 # Optional npm cache folder

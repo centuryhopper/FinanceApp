@@ -12,10 +12,10 @@ app.use(express.urlencoded({ extended: true }))
 app.use(rateLimiter)
 
 
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url}`);
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log(`Incoming request: ${req.method} ${req.url}`);
+//   next();
+// });
 
 
 app.use('/api/account', accountRoutes)
