@@ -25,12 +25,12 @@ app.use('/api/plaid', plaidRoutes)
 // app.use(express.static('../dist'));
 // Serve static files from Vue build
 // console.log(path.join(__dirname, '../dist'));
-app.use(express.static(path.join(__dirname, '../dist')));
+app.use(express.static(path.join(__dirname, '../client_output')));
 
 // Catch-all route to index.html (for Vue router)
 // must use this regex syntax for express v5+
 app.get(/(.*)/, (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+  res.sendFile(path.join(__dirname, '../client_output/index.html'));
 });
 
 export default app
