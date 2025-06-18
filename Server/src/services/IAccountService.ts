@@ -1,4 +1,4 @@
-import { GeneralResponse, LoginDTO, LoginResponse } from "src/types";
+import { GeneralResponse, LoginDTO, LoginResponse } from "../types";
 
 export interface IAccountService {
   logout(userId: number): Promise<GeneralResponse>;

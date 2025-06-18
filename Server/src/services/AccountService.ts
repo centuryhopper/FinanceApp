@@ -1,5 +1,5 @@
 import axios from "axios";
-import { GeneralResponse, LoginDTO, LoginResponse } from "src/types";
+import { GeneralResponse, LoginDTO, LoginResponse } from "../types";
 import { db } from "../utils/db";
 import { generateToken } from "../utils/jwt";
 import { IAccountService } from "./IAccountService";
