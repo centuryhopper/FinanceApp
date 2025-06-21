@@ -1,19 +1,23 @@
 import dotenv from "dotenv";
 import moment from "moment";
-import {
+import
+{
   Configuration,
   CountryCode,
   PlaidApi,
   PlaidEnvironments,
   Products,
+  Transaction,
 } from "plaid";
 
 dotenv.config();
 
-class PlaidApiService {
+class PlaidApiService
+{
   private client: PlaidApi;
 
-  constructor() {
+  constructor()
+  {
     const env =
       process.env.PLAID_ENV === "production"
         ? PlaidEnvironments.production
@@ -35,58 +39,70 @@ class PlaidApiService {
     this.client = new PlaidApi(config);
   }
 
-  async pollTransactions(accessToken: string, maxRetries = 5) {
+  async pollTransactions(accessToken: string, maxRetries = 5)
+  {
     let retries = 0;
     let delayMs = 2000;
-
-    const start_date = moment().subtract(1, "year").format("YYYY-MM-DD");
-    const end_date = moment().format("YYYY-MM-DD");
+    let cursor: string | undefined = undefined;
+    let transactions: Transaction[] = [];
 
     const delay = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
 
-    while (retries < maxRetries) {
-      try {
-        const res = await this.client.transactionsGet({
+    let hasMore = true;
+    while (hasMore && retries < maxRetries)
+    {
+      try
+      {
+        const response = await this.client.transactionsSync({
           access_token: accessToken,
-          start_date: start_date,
-          end_date: end_date,
+          cursor,
+          count: 100,
           options: {
             include_original_description: true,
           },
         });
 
-        return res.data.transactions; // success!
-      } catch (err: any) {
+        const { added, next_cursor, has_more } = response.data;
+
+
+        transactions.push(...added);
+        cursor = next_cursor;
+        hasMore = has_more;
+
+      } catch (err: any)
+      {
         const errorCode = err?.response?.data?.error_code;
-        if (errorCode === "PRODUCT_NOT_READY") {
+        if (errorCode === "PRODUCT_NOT_READY")
+        {
           console.log(
-            `Attempt ${retries + 1}: Product not ready. Retrying in ${
-              delayMs / 1000
+            `Attempt ${retries + 1}: Product not ready. Retrying in ${delayMs / 1000
             }s...`
           );
           await delay(delayMs);
           delayMs *= 2; // exponential backoff
           retries++;
-        } else {
+        } else
+        {
           throw err; // some other error
         }
       }
     }
 
-    throw new Error("Exceeded max retries. Transactions still not ready.");
+    if (retries > maxRetries)
+    {
+      throw new Error("Exceeded max retries. Transactions still not ready.");
+    }
+
+    return { transactions, cursor }
   }
 
-  async getPast1YearsTransactions(accessToken: string) {
-    // const response = await this.client.transactionsSync({
-    //     access_token: accessToken
-    // });
-
-    // return response.data;
-
+  async getPast1YearsTransactions(accessToken: string)
+  {
     const start_date = moment().subtract(1, "year").format("YYYY-MM-DD");
     const end_date = moment().format("YYYY-MM-DD");
-    try {
+    try
+    {
       const response = await this.client.transactionsGet({
         access_token: accessToken,
         start_date,
@@ -99,30 +115,35 @@ class PlaidApiService {
       );
 
       return transactions;
-    } catch (err: any) {
-      if (err.response?.data) {
+    } catch (err: any)
+    {
+      if (err.response?.data)
+      {
         console.error("Plaid API error:", err.response.data);
-      } else {
+      } else
+      {
         console.error("Unknown error occurred:", err);
       }
       throw err; // rethrow so caller can handle it
     }
   }
 
-  async getTransactions(accessToken: string) {
+  async getTransactions(accessToken: string)
+  {
     let allTransactions: any[] = [];
     let cursor: string | undefined = undefined;
     let hasMore = true;
 
-    const accountsResponse = await this.client.accountsGet({
-      access_token: accessToken,
-    });
-    console.log(
-      "accountsResponse.data.accounts",
-      accountsResponse.data.accounts
-    );
+    // const accountsResponse = await this.client.accountsGet({
+    //   access_token: accessToken,
+    // });
+    // console.log(
+    //   "accountsResponse.data.accounts",
+    //   accountsResponse.data.accounts
+    // );
 
-    while (hasMore) {
+    while (hasMore)
+    {
       const response = await this.client.transactionsSync({
         access_token: accessToken,
         cursor, // will be null on first call
@@ -138,8 +159,10 @@ class PlaidApiService {
     return allTransactions;
   }
 
-  async createLinkToken(userId: string) {
-    try {
+  async createLinkToken(userId: string)
+  {
+    try
+    {
       const response = await this.client.linkTokenCreate({
         user: { client_user_id: userId },
         client_name: "Finance App",
@@ -150,38 +173,42 @@ class PlaidApiService {
       });
 
       return response.data;
-    } catch (err: any) {
+    } catch (err: any)
+    {
       throw new Error(
-        `Failed to create link token: ${
-          err.response?.data?.error_message || err.message
+        `Failed to create link token: ${err.response?.data?.error_message || err.message
         }`
       );
     }
   }
 
-  async exchangePublicToken(publicToken: string) {
-    try {
+  async exchangePublicToken(publicToken: string)
+  {
+    try
+    {
       const response = await this.client.itemPublicTokenExchange({
         public_token: publicToken,
       });
       return response.data;
-    } catch (err: any) {
+    } catch (err: any)
+    {
       throw new Error(
-        `Failed to exchange public token: ${
-          err.response?.data?.error_message || err.message
+        `Failed to exchange public token: ${err.response?.data?.error_message || err.message
         }`
       );
     }
   }
 
-  async getAuthInfo(accessToken: string) {
-    try {
+  async getAuthInfo(accessToken: string)
+  {
+    try
+    {
       const response = await this.client.authGet({ access_token: accessToken });
       return response.data;
-    } catch (err: any) {
+    } catch (err: any)
+    {
       throw new Error(
-        `Failed to retrieve auth info: ${
-          err.response?.data?.error_message || err.message
+        `Failed to retrieve auth info: ${err.response?.data?.error_message || err.message
         }`
       );
     }

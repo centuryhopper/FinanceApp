@@ -1,4 +1,4 @@
-.PHONY: build clean copy all
+.PHONY: build clean copy all run
 
 # Composite target: run all in order
 all: clean build copy run

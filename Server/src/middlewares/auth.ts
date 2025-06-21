@@ -18,7 +18,7 @@ export const authenticateToken = (
       res.sendStatus(403);
       return;
     }
-    (req as any).payload = payload as JwtPayload; // Attach user claims
+    req.payload = payload as JwtPayload; // Attach user claims
     next();
   });
 };

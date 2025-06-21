@@ -1,10 +1,13 @@
 import { JwtPayload } from "jsonwebtoken";
-import { UserDTO } from "./index";
+import { IAccountService } from "../services/IAccountService";
+import { IPlaidItemService } from "../services/IPlaidItemService";
 
 declare global {
   namespace Express {
     interface Request {
       payload?: JwtPayload;
+      accountService?: IAccountService;
+      plaidItemService?: IPlaidItemService;
     }
   }
 }

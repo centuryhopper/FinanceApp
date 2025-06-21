@@ -1,9 +1,11 @@
-export interface GeneralResponse {
+export interface GeneralResponse
+{
   flag: boolean;
   message: string;
 }
 
-export interface LoginResponse extends GeneralResponse {
+export interface LoginResponse extends GeneralResponse
+{
   token?: string;
 }
 
@@ -14,10 +16,12 @@ export type LoginDTO = {
 };
 
 export type PlaidItemDTO = {
-  userid: number | null;
+  userid: number;
   accesstoken: string;
-  institutionname: string | null | undefined;
+  institutionname: string;
   datelinked: Date | null; // or Date | null if parsed
+  access_token_iv: string | null | undefined;
+  transactions_cursor: string | null | undefined;
 };
 
 export type UserDTO = {
