@@ -64,7 +64,10 @@ export const authStore = defineStore("auth", () => {
     claims.value = undefined;
   }
 
-  const isAuthenticated = computed(() => !!token.value);
+  // TODO: comment this line out when running from the backend
+  // This is just for debugging purposes
+  const isAuthenticated = true
+  // const isAuthenticated = computed(() => !!token.value);
 
   return {
     token,

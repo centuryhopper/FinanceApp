@@ -1,11 +1,8 @@
 <template>
-    <div class="container m-5 p-5">
-        <h1 class="fw-bold fs-3 mt-5 mb-3 text-center">Dashboard</h1>
-        <div class="d-flex justify-content-center">
+  <div class="container m-5 p-5">
+    <h1 class="fw-bold fs-3 mt-5 mb-3 text-center">Dashboard</h1>
+    <!-- <div class="d-flex justify-content-center">
           <div class="card bg-dark bg-gradient" style="width: 25rem">
-            <!-- <div class="card-header">
-                Total Balance
-            </div>  -->
 
             <div class="card-body">
               <h5 class="card-title" style="color: white">Total Balance</h5>
@@ -47,15 +44,30 @@
               </p>
             </div>
           </div>
-        </div>
+        </div> -->
+
+    <div class="row">
+      <div class="col-lg-4">
+        <DoughnutChart />
+      </div>
+      <div class="col-lg-4">
+        <BarChart />
+      </div>
+      <div class="col-lg-4">
+        <HorizontalStackedChart />
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
+import DoughnutChart from "./chartjs/DoughnutChart.vue";
+import BarChart from "./chartjs/BarChart.vue";
+import HorizontalStackedChart from "./chartjs/HorizontalStackedChart.vue";
 </script>
 
 <style scoped>
- * {
-    color: white;
- }
+* {
+  color: white;
+}
 </style>
