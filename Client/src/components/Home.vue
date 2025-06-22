@@ -24,20 +24,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Second row of cards -->
-      <div class="row g-4 mt-4">
-        <div class="col-md-3"></div>
-        <div class="col-md-6">
-          <div class="bg-secondary text-white p-4 rounded shadow">
-            <div class="text-center">
-              <h2 class="fs-4 fw-semibold mb-2">Inflow & Income</h2>
-              <p>Display list of bank accounts you are connected to</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3"></div>
-      </div>
     </div>
   </div>
   <div v-else>
@@ -56,7 +42,6 @@
 
 <script setup lang="ts">
 import Swal from "sweetalert2";
-import { ref, onMounted } from "vue";
 
 import { usePlaid } from "../composables/usePlaid";
 import { authStore } from "../stores/auth";

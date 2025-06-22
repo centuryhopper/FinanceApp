@@ -46,19 +46,33 @@
           </div>
         </div> -->
 
-    <div class="row">
-      <div class="col-lg-4">
+    <div class="row m-3">
+      <div class="col-lg-3"></div>
+      <div class="col-lg-6">
         <DoughnutChart />
       </div>
-      <div class="col-lg-4">
-        <BarChart />
-      </div>
-      <div class="col-lg-4">
-        <HorizontalStackedChart />
-      </div>
+      <div class="col-lg-3"></div>
     </div>
 
-    <TransactionsGrid :transactions="transactions" />
+    <div class="row m-3">
+      <div class="col-lg-3"></div>
+      <div class="col-lg-6">
+        <BarChart />
+      </div>
+      <div class="col-lg-3"></div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-3"></div>
+      <div class="col-lg-6">
+        <HorizontalStackedChart />
+      </div>
+      <div class="col-lg-3"></div>
+    </div>
+
+    <div class="m-3">
+      <TransactionsGrid :transactions="transactions" />
+    </div>
   </div>
 </template>
 

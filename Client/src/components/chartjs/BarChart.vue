@@ -1,69 +1,81 @@
-<!-- components/BarChart.vue -->
+<template>
+  <canvas ref="canvasRef"></canvas>
+</template>
+
 <script setup lang="ts">
-import { Bar } from "vue-chartjs";
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
+  Chart,
+  BarController,
   BarElement,
   CategoryScale,
   LinearScale,
-} from "chart.js";
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+// Register only what you need
+Chart.register(BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend)
 
-const chartData = {
-  labels: ["Red", "Blue", "Yellow"],
-  datasets: [
-    {
-      label: "Spendings",
-      data: [12, 19, 3],
-      backgroundColor: ["#f87171", "#60a5fa", "#facc15"],
-    },
-  ],
-};
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+let chartInstance: Chart | null = null
 
-const chartOptions = {
-  responsive: true,
-  plugins: {
-    title: {
-      display: true,
-      text: "Color Popularity",
-      color: "#ffffff", // White title text
-      font: {
-        size: 18,
-        weight: "bold",
+onMounted(() => {
+  if (canvasRef.value) {
+    chartInstance = new Chart(canvasRef.value, {
+      type: 'bar',
+      data: {
+        labels: ['Red', 'Blue', 'Yellow'],
+        datasets: [{
+          label: 'Votes',
+          data: [12, 19, 3],
+          backgroundColor: ['#f87171', '#60a5fa', '#facc15']
+        }]
       },
-      padding: {
-        top: 10,
-        bottom: 20,
-      },
-    },
-    legend: {
-      position: "top",
-      labels: {
-        color: "#ffffff", // Optional: make legend text white too
-      },
-    },
-  },
-  scales: {
-    x: {
-      ticks: {
-        color: "#ffffff", // Make x-axis labels white
-      },
-    },
-    y: {
-      ticks: {
-        color: "#ffffff", // Make y-axis labels white
-      },
-    },
-  },
-};
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#ffffff'
+            }
+          },
+          title: {
+            display: true,
+            text: 'Color Popularity',
+            color: '#ffffff',
+            font: {
+              size: 18,
+              weight: 'bold'
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#ffffff'
+            }
+          },
+          y: {
+            ticks: {
+              color: '#ffffff'
+            }
+          }
+        }
+      }
+    })
+  }
+})
+
+onBeforeUnmount(() => {
+  chartInstance?.destroy()
+})
 </script>
 
-<template>
-  <div style="width: 25rem; height: 25rem">
-    <Bar :data="chartData" :options="chartOptions" />
-  </div>
-</template>
+<style scoped>
+canvas {
+  max-width: 600px;
+  max-height: 400px;
+}
+</style>

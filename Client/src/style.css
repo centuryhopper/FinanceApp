@@ -12,10 +12,10 @@
   color: #dcdcdc;
 }
 
-.swal-dark .swal2-confirm {
+/* .swal-dark .swal2-confirm {
   background-color: #3a3a3a !important;
   color: #ffffff !important;
-}
+} */
 
 /* Reset margin/padding and set height to 100% on html and body */
 html, body {

@@ -1,40 +1,49 @@
-import { computed, onUnmounted, ref } from "vue";
+import { onUnmounted, ref } from "vue";
 import type { UseCountdownOptions } from "../types";
 
 export default function useCountDown({
   onComplete,
   onTick,
-}: UseCountdownOptions) {
+}: UseCountdownOptions)
+{
   const secondsLeft = ref(0);
-  const secondsLeftComputed = computed(() => secondsLeft.value);
+  // const secondsLeftComputed = computed(() => secondsLeft.value);
 
   let ticker: ReturnType<typeof setInterval> | null = null;
 
-  const clearTicker = () => {
-    if (ticker) {
+  const clearTicker = () =>
+  {
+    if (ticker)
+    {
       clearInterval(ticker);
       ticker = null;
     }
   };
 
-  onUnmounted(() => {
+  onUnmounted(() =>
+  {
     clearTicker();
   });
 
-  const startTimer = (seconds: number) => {
-    if (ticker) {
+  const startTimer = (seconds: number) =>
+  {
+    if (ticker)
+    {
       clearInterval(ticker);
     }
     secondsLeft.value = seconds;
 
-    ticker = setInterval(() => {
-      if (secondsLeft.value <= 1) {
+    ticker = setInterval(() =>
+    {
+      if (secondsLeft.value <= 1)
+      {
         secondsLeft.value = 0;
         clearInterval(ticker!);
         ticker = null;
         onTick?.();
         onComplete?.();
-      } else {
+      } else
+      {
         secondsLeft.value -= 1;
         onTick?.();
       }

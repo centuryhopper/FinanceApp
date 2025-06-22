@@ -7,7 +7,7 @@ import ChartDataLabels from "chartjs-plugin-datalabels";
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 const chartData = {
-  labels: ["Apples", "Bananas", "Cherries"],
+  // labels: ["Apples", "Bananas", "Cherries"],
   datasets: [
     {
       data: [10, 20, 30],

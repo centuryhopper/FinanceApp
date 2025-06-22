@@ -1,43 +1,63 @@
 <template>
-    <div class="container m-5 p-5">
-        <h1 class="fw-bold fs-3 mt-5 mb-3 text-center">Settings</h1>
-        <div class="d-flex justify-content-center">
-          <div class="card bg-dark bg-gradient">
-            <div class="card-body">
-              <div class="card-text">
-                <ul class="list-group" style="width: 15rem;">
-                    <li v-for="sel in selections" :key="sel.name" class="list-group-item custom-setting-item d-flex justify-content-between align-items-center bg-black" style="color: white;" @click="console.log('clicked ' + sel.name)">
-                        {{sel.name}}
-                        <span class="arrow">&rarr;</span>
-                    </li>
-                </ul>
-              </div>
-            </div>
+  <div class="container m-5 p-5">
+    <h1 class="fw-bold fs-3 mt-5 mb-3 text-center">Settings</h1>
+    <div class="d-flex justify-content-center">
+      <div class="card bg-dark bg-gradient">
+        <div class="card-body">
+          <div class="card-text">
+            <ul class="list-group" style="width: 15rem">
+              <li
+                v-for="sel in selections"
+                :key="sel.name"
+                class="list-group-item custom-setting-item d-flex justify-content-between align-items-center bg-black"
+                style="color: white"
+                @click="toggle2FA"
+              >
+                {{ sel.name }}
+                <span class="arrow">&rarr;</span>
+              </li>
+            </ul>
+          </div>
         </div>
+      </div>
     </div>
-    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-    const selections = [
-    {
-      name: 'App Appearance',
+import useSweetAlertPopups from "../composables/useSweetAlertPopups";
+const { confirmationPopup } = useSweetAlertPopups();
+const selections = [
+  {
+    name: "App Appearance",
+  },
+  {
+    name: "Toggle Two-Factor Authentication",
+  },
+];
+
+async function toggle2FA() {
+  await confirmationPopup(
+    "Notice",
+    "2FA is currently disabled. Would you like to enable it?",
+    async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      console.log("enabled 2fa!");
     },
-    {
-      name: 'Security'
-    },
-    {
-      name: 'Notifications'
-    },
-  ];
+    async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      console.log("cancelled enabling 2fa!");
+    }
+  );
+}
 </script>
 
 <style scoped>
- h1 {
-    color: white;
- }
+h1 {
+  color: white;
+}
 
- .custom-setting-item .arrow {
+.custom-setting-item .arrow {
   transition: transform 0.2s ease;
 }
 
@@ -56,7 +76,7 @@
 .list-group-item.custom-setting-item:hover {
   background-image: linear-gradient(90deg, #4b6cb7, #182848) !important;
   /* background-image: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6) !important; */
-  
+
   color: white;
 }
 </style>
