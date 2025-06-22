@@ -5,6 +5,9 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "outDir": "./client_output"
-  }
+    "outDir": "./client_output",
+    "allowSyntheticDefaultImports": true,
+    "types": ["vite/client"]
+  },
+  "include": ["src", "src/shims-vue.d.ts", "src/**/*.vue", "src/**/*.ts", "src/**/*.d.ts"]
 }

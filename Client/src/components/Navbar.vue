@@ -92,7 +92,7 @@ const navLinks = computed(() =>
     ? [
         { name: "Home", href: "/" },
         { name: "Dashboard", href: "/dashboard" },
-        { name: "Transactions", href: "/transactions" },
+        // { name: "Transactions", href: "/transactions" },
         { name: "Budgets", href: "/budgets" },
         { name: "Settings", href: "/settings" },
         { name: "Logout", href: "/logout" },

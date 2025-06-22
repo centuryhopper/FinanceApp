@@ -1,4 +1,4 @@
-<!-- components/PieChart.vue -->
+<!-- components/DoughnutChart.vue -->
 <script setup lang="ts">
 import { Doughnut } from "vue-chartjs";
 import { Chart as ChartJS, Tooltip, Legend, ArcElement } from "chart.js";
@@ -45,6 +45,10 @@ const chartOptions = {
   },
   cutout: "60%",
 };
+
+// export default {
+//   name: 'DoughnutChart'
+// }
 </script>
 
 <template>
