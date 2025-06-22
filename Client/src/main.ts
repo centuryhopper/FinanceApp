@@ -11,6 +11,14 @@ import router from "./router";
 import "./style.css";
 
 
+import { useThemeStore } from "./stores/theme-store";
+const themeStore = useThemeStore();
+document.documentElement.setAttribute(
+    "data-theme",
+    themeStore.isDark ? "dark" : "light"
+);
+
+
 Chart.register(...registerables)
 
 const app = createApp(App);
