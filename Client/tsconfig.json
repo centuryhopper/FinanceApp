@@ -7,7 +7,9 @@
   "compilerOptions": {
     "outDir": "./client_output",
     "allowSyntheticDefaultImports": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "target": "ES2015",
+    "lib": ["ES2015", "DOM"],
   },
   "include": ["src", "src/shims-vue.d.ts", "src/**/*.vue", "src/**/*.ts", "src/**/*.d.ts"]
 }

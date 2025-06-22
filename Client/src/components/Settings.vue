@@ -11,7 +11,7 @@
                 :key="sel.name"
                 class="list-group-item custom-setting-item d-flex justify-content-between align-items-center bg-black"
                 style="color: white"
-                @click="toggle2FA"
+                @click="sel.callback"
               >
                 {{ sel.name }}
                 <span class="arrow">&rarr;</span>
@@ -30,9 +30,11 @@ const { confirmationPopup } = useSweetAlertPopups();
 const selections = [
   {
     name: "App Appearance",
+    callback: () => console.log("toggle app appearance!"),
   },
   {
     name: "Toggle Two-Factor Authentication",
+    callback: toggle2FA,
   },
 ];
 
