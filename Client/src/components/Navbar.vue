@@ -1,6 +1,8 @@
 <template>
   <nav
-    class="navbar navbar-expand-md bg-dark border-bottom border-secondary fixed-top shadow"
+    :class="`navbar navbar-expand-md ${
+      isDark ? 'bg-dark' : ''
+    } border-bottom border-secondary fixed-top shadow`"
   >
     <div
       class="container-fluid px-4 py-2 d-flex justify-content-between align-items-center"
@@ -8,22 +10,30 @@
       <!-- hamburger - mobile only -->
       <button
         @click="isMenuOpen = true"
-        class="d-md-none btn btn-link text-white p-0"
+        :class="`d-md-none btn btn-link text-${isDark ? 'white' : 'black'} p-0`"
         aria-label="Open menu"
       >
         <Menu :size="28" />
       </button>
 
       <div
-        class="position-absolute top-50 start-50 translate-middle text-white fw-bold text-uppercase text-center d-md-none"
+        :class="`position-absolute top-50 start-50 translate-middle text-${
+          isDark ? 'white' : 'black'
+        } fw-bold text-uppercase text-center d-md-none`"
       >
-        <router-link class="nav-link text-white text-decoration-none" to="/"
+        <router-link
+          :class="`nav-link text-${isDark ? 'white' : 'black'} text-decoration-none`"
+          to="/"
           >Personal Spending</router-link
         >
       </div>
 
-      <div className="d-none d-md-block text-white fw-bold text-uppercase">
-        <router-link class="nav-link text-white text-decoration-none" to="/"
+      <div
+        :class="`d-none d-md-block text-${isDark ? 'white' : ''} fw-bold text-uppercase`"
+      >
+        <router-link
+          :class="`nav-link text-${isDark ? 'white' : ''} text-decoration-none`"
+          to="/"
           >Personal Spending</router-link
         >
       </div>
@@ -32,13 +42,15 @@
       <div class="d-none d-md-flex gap-4 fw-medium">
         <span
           :key="link.name"
-          class="btn-dark p-2"
+          class="btn-dark p-3"
           v-for="link in navLinks"
           style="border-radius: 10px"
         >
-          <router-link class="nav-link text-white text-decoration-none" :to="link.href">{{
-            link.name
-          }}</router-link>
+          <router-link
+            :class="`nav-link text-${isDark ? 'white' : ''} text-decoration-none`"
+            :to="link.href"
+            >{{ link.name }}</router-link
+          >
         </span>
       </div>
 
@@ -50,25 +62,28 @@
           @click="isMenuOpen = false"
         />
         <aside
-          class="position-fixed top-0 start-0 bg-dark text-white p-4 d-flex flex-column gap-4 h-100 shadow animate-slide-in"
+          :class="`position-fixed top-0 start-0 ${
+            isDark ? 'bg-dark text-white' : 'bg-light text-black'
+          } p-4 d-flex flex-column gap-4 h-100 shadow animate-slide-in`"
           style="width: 250px; zindex: 1050; overflowy: auto"
         >
           <button
             @click="isMenuOpen = false"
-            class="btn btn-link text-white align-self-end p-0"
+            :class="`btn btn-link text-${isDark ? 'white' : 'black'} align-self-end p-0`"
             aria-label="Close menu"
           >
             <X :size="28" />
           </button>
           <span
             :key="link.name"
-            class="btn-dark p-2"
+            class="btn-dark p-3"
             v-for="link in navLinks"
             style="border-radius: 10px"
           >
             <router-link
-              class="nav-link text-white text-decoration-none fs-5"
+              :class="`nav-link text-${isDark ? 'white' : ''} text-decoration-none fs-5`"
               :to="link.href"
+              router-link
               >{{ link.name }}</router-link
             >
           </span>
@@ -79,9 +94,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
 import { Menu, X } from "lucide-vue-next";
+import { computed, ref } from "vue";
 import { authStore } from "../stores/auth";
+import { useTheme } from "../stores/theme-store";
+
+const { isDark } = useTheme();
 
 const isMenuOpen = ref(false);
 
@@ -139,6 +157,7 @@ const navLinks = computed(() =>
   bottom: 0;
   /*background: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6);/* /* cyan to blue to purple */
   background-image: linear-gradient(90deg, #4b6cb7, #182848);
+  /* color: white; */
   border: 10px;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -150,6 +169,6 @@ const navLinks = computed(() =>
 }
 
 .btn-dark:hover {
-  color: white; /* keep text white on hover */
+  color: white;
 }
 </style>

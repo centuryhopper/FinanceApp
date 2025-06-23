@@ -62,8 +62,8 @@ body {
 /* Footer stays at bottom */
 footer {
   flex-shrink: 0;
-  background-color: #222;
-  color: white;
+  /* background-color: #222; */
+  /* color: white; */
   padding: 1rem;
   text-align: center;
 }

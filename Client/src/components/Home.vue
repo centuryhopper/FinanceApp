@@ -178,11 +178,11 @@ transaction model:
 </script>
 
 <style scoped>
-* {
+/* * {
   color: white;
-}
+} */
 
-.card {
+/* .card {
   background-color: #2b2d30;
-}
+} */
 </style>

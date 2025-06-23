@@ -4,7 +4,7 @@
       Budget for {{ currentMonthString }}
     </h1>
     <div class="d-flex justify-content-center">
-      <div class="card bg-dark bg-gradient">
+      <div :class="`card ${isDark ? 'bg-dark' : ''} bg-gradient`">
         <div class="card-body">
           <p class="card-text">
             <Budgetsbar
@@ -25,7 +25,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useTheme } from "../stores/theme-store";
 import Budgetsbar from "./Budgetsbar.vue";
+
+const { isDark } = useTheme();
 
 function updatebudgetLimit(id: number, newLimit: number) {
   const item = budgetInfo.value.find((b) => b.id === id);
@@ -75,7 +78,7 @@ const budgetInfo = ref([
 </script>
 
 <style scoped>
-* {
+/* * {
   color: white;
-}
+} */
 </style>

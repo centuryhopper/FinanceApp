@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import useCountDown from '../composables/useCountDown';
+import useCountDown from "../composables/useCountDown";
 import type { LoginModel, LoginPageProps } from "../types/LoginTypes";
 
-const { cooldownSeconds, maxAttempts, noticeText, redirectLink, onLogin } = withDefaults(defineProps<LoginPageProps>(), {
-  cooldownSeconds: 10,
-  maxAttempts: 5,
-  noticeText: "",
-  redirectLink: "/",
-});
+const { cooldownSeconds, maxAttempts, noticeText, redirectLink, onLogin } = withDefaults(
+  defineProps<LoginPageProps>(),
+  {
+    cooldownSeconds: 10,
+    maxAttempts: 5,
+    noticeText: "",
+    redirectLink: "/",
+  }
+);
 
 const model = ref<LoginModel>({
   email: "",
@@ -33,7 +36,7 @@ const { secondsLeft, startTimer } = useCountDown({
     attemptsNotice.value = "";
   },
   onTick: () => {
-    console.log('tick called!');
+    console.log("tick called!");
     errMsg.value = `Too many attempts. Please wait ${secondsLeft.value} seconds before trying again.`;
   },
 });
@@ -148,14 +151,14 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
-    /* .container {
+/* .container {
     max-width: 400px;
     margin: auto;
     padding-top: 40px;
     } */
 
-    #login_form input {
-    color: white;
-    background-color: black;
+#login_form input {
+  /* color: white; */
+  /* background-color: black; */
 }
 </style>

@@ -1,4 +1,3 @@
-import Aura from '@primeuix/themes/aura';
 import 'bootstrap'; // imports JavaScript behavior for dropdowns, navbar toggles, etc.
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Chart, registerables } from 'chart.js';
@@ -24,11 +23,7 @@ Chart.register(...registerables)
 const app = createApp(App);
 app.use(createPinia());
 app.use(router);
-app.use(PrimeVue, {
-    theme: {
-        preset: Aura
-    }
-});
+app.use(PrimeVue);
 
 
 app.mount("#app");

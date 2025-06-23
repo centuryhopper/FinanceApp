@@ -2,15 +2,15 @@
   <div class="container m-5 p-5">
     <h1 class="fw-bold fs-3 mt-5 mb-3 text-center">Settings</h1>
     <div class="d-flex justify-content-center">
-      <div class="card bg-dark bg-gradient">
+      <div :class="`card ${isDark ? 'bg-dark' : ''} bg-gradient`">
         <div class="card-body">
           <div class="card-text">
             <ul class="list-group" style="width: 15rem">
               <li
                 v-for="sel in selections"
                 :key="sel.name"
-                class="list-group-item custom-setting-item d-flex justify-content-between align-items-center bg-black"
-                style="color: white"
+                :class="`list-group-item custom-setting-item d-flex justify-content-between align-items-center ${isDark ? 'bg-dark' : ''}`"
+                
                 @click="sel.callback"
               >
                 {{ sel.name }}
@@ -26,11 +26,17 @@
 
 <script setup lang="ts">
 import useSweetAlertPopups from "../composables/useSweetAlertPopups";
+import { useTheme } from "../stores/theme-store";
 const { confirmationPopup } = useSweetAlertPopups();
+
+const { isDark, toggleTheme } = useTheme();
 const selections = [
   {
     name: "App Appearance",
-    callback: () => console.log("toggle app appearance!"),
+    callback: () => {
+      toggleTheme();
+      console.log("toggle app appearance!");
+    },
   },
   {
     name: "Toggle Two-Factor Authentication",
@@ -55,9 +61,9 @@ async function toggle2FA() {
 </script>
 
 <style scoped>
-h1 {
+/* h1 {
   color: white;
-}
+} */
 
 .custom-setting-item .arrow {
   transition: transform 0.2s ease;
@@ -69,8 +75,8 @@ h1 {
 
 /* Add this to Settings.css */
 .list-group-item.custom-setting-item {
-  background-color: #000 !important; /* black base */
-  color: white;
+  /* background-color: #000 !important; */
+  /* color: white; */
   cursor: pointer;
   transition: background-image 0.3s ease, color 0.3s ease;
 }
@@ -79,6 +85,6 @@ h1 {
   background-image: linear-gradient(90deg, #4b6cb7, #182848) !important;
   /* background-image: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6) !important; */
 
-  color: white;
+  /* color: white; */
 }
 </style>

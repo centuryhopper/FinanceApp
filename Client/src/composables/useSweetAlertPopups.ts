@@ -1,8 +1,10 @@
 import Swal from "sweetalert2";
+import { useTheme } from "../stores/theme-store";
 
 
 export default function useSweetAlertPopups()
 {
+    const { isDark } = useTheme()
     const showFeedbackPopup = async (
         success: boolean = true,
         successMsg: string,
@@ -17,7 +19,7 @@ export default function useSweetAlertPopups()
             icon: success ? "success" : "error",
             confirmButtonText: "OK",
             customClass: {
-                popup: "swal-dark",
+                popup: isDark.value ? "swal-dark" : "",
             },
             allowOutsideClick: false,
         });
@@ -40,7 +42,7 @@ export default function useSweetAlertPopups()
             confirmButtonColor: '#28a745',
             cancelButtonColor: 'red',
             customClass: {
-                popup: "swal-dark",
+                popup: isDark.value ? "swal-dark" : "",
             },
             allowOutsideClick: false,
         });

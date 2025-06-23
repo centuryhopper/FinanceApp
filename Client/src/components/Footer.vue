@@ -1,5 +1,5 @@
 <template>
-  <footer class="bg-dark bg-gradient text-light text-center py-3 mt-5">
+  <footer :class="`${isDark ? 'bg-dark bg-gradient' : 'bg-light bg-gradient-light'}  text-center py-3 mt-5`">
     <div class="container">
       <small>&copy; {{ year }} My Finance App. All rights reserved.</small>
     </div>
@@ -7,5 +7,7 @@
 </template>
 
 <script setup lang="ts">
-    const year = new Date().getFullYear()
+import { useTheme } from "../stores/theme-store";
+const year = new Date().getFullYear();
+const { isDark } = useTheme();
 </script>

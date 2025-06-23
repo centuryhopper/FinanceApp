@@ -1,8 +1,8 @@
 <template>
-  <div class="m-2 p-3 rounded shadow-sm bg-black" style="width: 30rem">
+  <div class="`m-2 p-3 rounded shadow-sm ${isDark ? 'bg-dark' : ''}`" style="width: 30rem">
     <div class="d-flex justify-content-between align-items-center mb-1">
-      <span class="fw-semibold text-white">{{ category }}</span>
-      <span class="fw-bold text-white">Total spent: ${{ spent.toFixed(2) }}</span>
+      <span class="fw-semibold">{{ category }}</span>
+      <span class="fw-bold">Total spent: ${{ spent.toFixed(2) }}</span>
     </div>
     <div class="progress" style="height: 8px">
       <div
@@ -15,7 +15,7 @@
       ></div>
     </div>
     <div class="d-flex justify-content-between align-items-center mb-1">
-      <span class="text-white small">$0</span>
+      <span class="small">$0</span>
       <span v-if="budgetLimitClicked" class="text-end m-1">
         <input
           class="w-50"
@@ -36,11 +36,15 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useTheme } from "../stores/theme-store";
 import type { BudgetBarProps } from "../types/BudgetTypes";
+
 const { category, spent, budget } = defineProps<BudgetBarProps>();
 const progress = computed(() => Math.min((spent / budget) * 100, 100));
-const budgetThresholdColor = computed(() => (spent <= budget ? "white" : "danger"));
+const budgetThresholdColor = computed(() => (spent <= budget ? "" : "danger"));
 const budgetLimitClicked = ref(false);
+
+const { isDark } = useTheme();
 
 const emit = defineEmits<{
   (e: "update:budgetLimit", newBudgetLimit: number): void;
