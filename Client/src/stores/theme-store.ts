@@ -1,5 +1,6 @@
 import { onMounted, ref } from "vue";
 
+// dark by default
 const isDark = ref(true);
 
 export function useTheme()

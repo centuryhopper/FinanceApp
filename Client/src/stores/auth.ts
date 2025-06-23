@@ -1,13 +1,16 @@
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 
-interface Claims {
+interface Claims
+{
   exp?: number;
   [key: string]: any;
 }
 
-function parseJwt(token: string): Claims | undefined {
-  try {
+function parseJwt(token: string): Claims | undefined
+{
+  try
+  {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
@@ -17,26 +20,32 @@ function parseJwt(token: string): Claims | undefined {
         .join("")
     );
     return JSON.parse(jsonPayload);
-  } catch {
+  } catch
+  {
     return undefined;
   }
 }
 
-export const authStore = defineStore("auth", () => {
+export const authStore = defineStore("auth", () =>
+{
   const token = ref<string | undefined>(undefined);
   const claims = ref<Claims | undefined>(undefined);
 
   // Load token on store initialization
-  function loadToken() {
+  function loadToken()
+  {
     const storedToken =
       localStorage.getItem("token") ?? sessionStorage.getItem("token");
-    if (storedToken) {
+    if (storedToken)
+    {
       const decoded = parseJwt(storedToken);
       const isExpired = decoded?.exp && Date.now() >= decoded.exp * 1000;
-      if (!isExpired) {
+      if (!isExpired)
+      {
         token.value = storedToken;
         claims.value = decoded;
-      } else {
+      } else
+      {
         localStorage.removeItem("token");
         sessionStorage.removeItem("token");
       }
@@ -46,18 +55,22 @@ export const authStore = defineStore("auth", () => {
   // Call loadToken immediately when store is created
   loadToken();
 
-  function login(newToken: string, rememberMe: boolean) {
+  function login(newToken: string, rememberMe: boolean)
+  {
     const decoded = parseJwt(newToken);
-    if (rememberMe) {
+    if (rememberMe)
+    {
       localStorage.setItem("token", newToken);
-    } else {
+    } else
+    {
       sessionStorage.setItem("token", newToken);
     }
     token.value = newToken;
     claims.value = decoded;
   }
 
-  function logout() {
+  function logout()
+  {
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
     token.value = undefined;
@@ -66,7 +79,7 @@ export const authStore = defineStore("auth", () => {
 
   // TODO: comment this line out when running from the backend
   // This is just for debugging purposes
-  const isAuthenticated = true
+  const isAuthenticated = false
   // const isAuthenticated = computed(() => !!token.value);
 
   return {

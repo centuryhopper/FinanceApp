@@ -2,7 +2,10 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import useCountDown from "../composables/useCountDown";
+import { useTheme } from "../stores/theme-store";
 import type { LoginModel, LoginPageProps } from "../types/LoginTypes";
+
+const { isDark } = useTheme();
 
 const { cooldownSeconds, maxAttempts, noticeText, redirectLink, onLogin } = withDefaults(
   defineProps<LoginPageProps>(),
@@ -78,26 +81,34 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="container">
-    <form id="login_form" @submit.prevent="handleSubmit" class="card text-white bg-black">
-      <h4 class="card-header">Login</h4>
+  <div class="container p-5">
+    <form
+      id="login_form"
+      @submit.prevent="handleSubmit"
+      :class="`card text-white ${isDark ? 'bg-black bg-gradient' : ''}`"
+    >
+      <h4 :class="`card-header text-${isDark ? 'white' : 'black'}`">Login</h4>
       <div class="card-body">
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="email" :class="`text-${isDark ? 'white' : 'black'}`">Email</label>
           <input
             id="email"
             type="email"
             class="form-control"
             v-model="model.email"
             required
+            placeholder="Enter your email"
             @input="handleChange"
           />
         </div>
         <div class="form-group mt-3">
-          <label for="password">Password</label>
+          <label for="password" :class="`text-${isDark ? 'white' : 'black'}`"
+            >Password</label
+          >
           <div class="input-group">
             <input
               id="password"
+              placeholder="Enter your password"
               :type="isPasswordVisible ? 'text' : 'password'"
               class="form-control"
               v-model="model.password"
@@ -127,7 +138,12 @@ async function handleSubmit() {
             v-model="model.rememberMe"
             @change="handleChange"
           />
-          <label class="form-check-label" for="rememberMe"> Remember Me </label>
+          <label
+            :class="`form-check-label text-${isDark ? 'white' : 'black'}`"
+            for="rememberMe"
+          >
+            Remember Me
+          </label>
         </div>
 
         <button
