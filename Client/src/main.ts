@@ -11,8 +11,8 @@ import router from "./router";
 import "./style.css";
 
 
-import { useThemeStore } from "./stores/theme-store";
-const themeStore = useThemeStore();
+import { useTheme } from "./stores/theme-store";
+const themeStore = useTheme();
 document.documentElement.setAttribute(
     "data-theme",
     themeStore.isDark ? "dark" : "light"

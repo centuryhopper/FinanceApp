@@ -1,7 +1,6 @@
 <template>
-  <div id="app" class="bg-black">
+  <div id="app">
     <header>
-      <!-- your navbar -->
       <Navbar />
     </header>
 
