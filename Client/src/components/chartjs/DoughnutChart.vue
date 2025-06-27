@@ -1,8 +1,8 @@
 <!-- components/DoughnutChart.vue -->
 <script setup lang="ts">
-import { Doughnut } from "vue-chartjs";
-import { Chart as ChartJS, Tooltip, Legend, ArcElement } from "chart.js";
+import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { Doughnut } from "vue-chartjs";
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
@@ -18,31 +18,32 @@ const chartData = {
 
 const chartOptions = {
   responsive: true,
-  plugins: {
-    title: {
-      display: true,
-      color: "#ffffff",
-      text: "Spending Distribution",
-      font: {
-        size: 18,
-        weight: "bold",
-      },
-    },
-    datalabels: {
-      color: "#fff",
-      font: {
-        weight: "bold" as const,
-      },
-      formatter: (value: number, context: any) => {
-        const data = context.chart.data.datasets[0].data;
-        const total = data.reduce((sum: number, val: number) => sum + val, 0);
-        return `${((value / total) * 100).toFixed(1)}%`;
-      },
-    },
-    legend: {
-      position: "bottom",
-    },
-  },
+  // plugins: {
+  //   title: {
+  //     display: true,
+  //     color: "#ffffff",
+  //     text: "Spending Distribution",
+  //     font: {
+  //       size: 18,
+  //       weight: "bold",
+  //     },
+  //   },
+  //   datalabels: {
+  //     color: "#fff",
+  //     font: {
+  //       weight: "bold" as const,
+  //     },
+  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //     formatter: (value: number, context: any) => {
+  //       const data = context.chart.data.datasets[0].data;
+  //       const total = data.reduce((sum: number, val: number) => sum + val, 0);
+  //       return `${((value / total) * 100).toFixed(1)}%`;
+  //     },
+  //   },
+  //   legend: {
+  //     position: "bottom",
+  //   },
+  // },
   cutout: "60%",
 };
 

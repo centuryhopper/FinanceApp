@@ -1,5 +1,8 @@
 <template>
-  <div class="`m-2 p-3 rounded shadow-sm ${isDark ? 'bg-dark' : ''}`" style="width: 30rem">
+  <div
+    class="`m-2 p-3 rounded shadow-sm ${isDark ? 'bg-dark' : ''}`"
+    style="width: 30rem"
+  >
     <div class="d-flex justify-content-between align-items-center mb-1">
       <span class="fw-semibold">{{ category }}</span>
       <span class="fw-bold">Total spent: ${{ spent.toFixed(2) }}</span>

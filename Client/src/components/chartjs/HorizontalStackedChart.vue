@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { Bar } from "vue-chartjs";
 import {
-  Chart as ChartJS,
   BarElement,
   CategoryScale,
+  Chart as ChartJS,
+  Legend,
   LinearScale,
   Title,
   Tooltip,
-  Legend,
+  type ChartOptions,
 } from "chart.js";
+import { Bar } from "vue-chartjs";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
@@ -33,12 +34,12 @@ const chartData = {
   ],
 };
 
-const chartOptions = {
+const chartOptions: ChartOptions<"bar"> = {
   responsive: true,
-  indexAxis: "y", // 🔁 Makes it horizontal
+  indexAxis: "y", // ✅ Now TS knows this is one of the allowed values
   plugins: {
     legend: {
-      position: "top" as const,
+      position: "top", // ✅ No need for 'as const' when typed properly
     },
     title: {
       display: true,

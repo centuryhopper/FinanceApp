@@ -1,5 +1,6 @@
+import { jwtDecode } from "jwt-decode";
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 interface Claims
 {
@@ -7,24 +8,26 @@ interface Claims
   [key: string]: any;
 }
 
-function parseJwt(token: string): Claims | undefined
-{
-  try
-  {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch
-  {
-    return undefined;
-  }
-}
+// function parseJwt(token: string): Claims | undefined
+// {
+//   try
+//   {
+//     const base64Url = token.split(".")[1];
+//     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+//     const jsonPayload = decodeURIComponent(
+//       atob(base64)
+
+//         .split("")
+//         .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
+//         .join("")
+//     );
+//     // console.log('jsonPayload:', jsonPayload);
+//     return JSON.parse(jsonPayload);
+//   } catch
+//   {
+//     return undefined;
+//   }
+// }
 
 export const authStore = defineStore("auth", () =>
 {
@@ -38,7 +41,7 @@ export const authStore = defineStore("auth", () =>
       localStorage.getItem("token") ?? sessionStorage.getItem("token");
     if (storedToken)
     {
-      const decoded = parseJwt(storedToken);
+      const decoded = jwtDecode(storedToken);
       const isExpired = decoded?.exp && Date.now() >= decoded.exp * 1000;
       if (!isExpired)
       {
@@ -57,7 +60,9 @@ export const authStore = defineStore("auth", () =>
 
   function login(newToken: string, rememberMe: boolean)
   {
-    const decoded = parseJwt(newToken);
+    // const decoded = parseJwt(newToken);
+    const decoded = jwtDecode(newToken);
+    // console.log('decoded:',decoded);
     if (rememberMe)
     {
       localStorage.setItem("token", newToken);
@@ -79,8 +84,8 @@ export const authStore = defineStore("auth", () =>
 
   // TODO: comment this line out when running from the backend
   // This is just for debugging purposes
-  const isAuthenticated = false
-  // const isAuthenticated = computed(() => !!token.value);
+  // const isAuthenticated = false
+  const isAuthenticated = computed(() => !!token.value);
 
   return {
     token,
