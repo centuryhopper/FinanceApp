@@ -60,6 +60,7 @@ builder.Services.AddSwaggerGen(options =>
 
 var configProvider = new ConfigProvider(builder.Environment, builder.Configuration);
 builder.Services.AddSingleton(configProvider);
+builder.Services.AddSingleton<EncryptionContext>();
 
 builder
     .Services.AddAuthentication(options =>

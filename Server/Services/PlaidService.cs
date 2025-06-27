@@ -42,6 +42,7 @@ public class PlaidService
             EndDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
             Options = new TransactionsGetRequestOptions
             {
+                Count = 500,
                 DaysRequested = 730
             }
         };
@@ -68,6 +69,10 @@ public class PlaidService
             },
             Products = new[] { Products.Auth, Products.Transactions },
             RedirectUri = null,
+            Transactions = new LinkTokenTransactions
+            {
+                DaysRequested = 730
+            }
         });
 
         if (response.IsSuccessStatusCode)

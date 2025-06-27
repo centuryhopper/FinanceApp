@@ -11,6 +11,7 @@ using Server.Utils;
 using System.Text;
 using System.Text.Json;
 using Going.Plaid.Transactions;
+using Server.Contexts;
 
 namespace Server.Controllers;
 
@@ -22,10 +23,12 @@ public class PlaidController : ControllerBase
     private readonly PlaidService plaidService;
     private readonly IPlaidItemRepository plaidItemRepository;
     private readonly ConfigProvider configProvider;
+    private readonly EncryptionContext encryptionContext;
 
-    public PlaidController(PlaidService plaidService, IPlaidItemRepository plaidItemRepository, ConfigProvider configProvider)
+    public PlaidController(PlaidService plaidService, IPlaidItemRepository plaidItemRepository, ConfigProvider configProvider, EncryptionContext encryptionContext)
     {
         this.configProvider = configProvider;
+        this.encryptionContext = encryptionContext;
         this.plaidService = plaidService;
         this.plaidItemRepository = plaidItemRepository;
     }
@@ -76,7 +79,7 @@ public class PlaidController : ControllerBase
                     var response = (await plaidItemRepository.StorePlaidItemAsync(new PlaidItemDTO
                     {
                         Userid = userId,
-                        Accesstoken = exchangedResponse.AccessToken,
+                        Accesstoken = Convert.ToBase64String(encryptionContext.Encrypt(exchangedResponse.AccessToken)),
                         Institutionname = authInfo.Item.InstitutionName,
                         Datelinked = DateTime.UtcNow,
                     })).Match(
