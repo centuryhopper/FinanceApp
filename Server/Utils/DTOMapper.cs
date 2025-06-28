@@ -1,5 +1,6 @@
 
 using System.Transactions;
+using Server.Contexts;
 using Server.Entities;
 using Server.Models;
 using Transaction = Server.Entities.Transaction;
@@ -26,25 +27,25 @@ public static class DTOMapper
         };
     }
 
-    public static PlaidItemDTO ToDTO(this Plaiditem obj)
+    public static PlaidItemDTO ToDTO(this Plaiditem obj, EncryptionContext encryptionContext)
     {
         return new()
         {
             Plaiditemid = obj.Plaiditemid,
             Userid = obj.Userid,
-            Accesstoken = obj.Accesstoken,
+            Accesstoken = encryptionContext.Decrypt(Convert.FromBase64String(obj.Accesstoken)),
             Institutionname = obj.Institutionname,
             Datelinked = obj.Datelinked,
         };
     }
 
-    public static Plaiditem ToEntity(this PlaidItemDTO dto)
+    public static Plaiditem ToEntity(this PlaidItemDTO dto, EncryptionContext encryptionContext)
     {
         return new()
         {
             Plaiditemid = dto.Plaiditemid,
             Userid = dto.Userid,
-            Accesstoken = dto.Accesstoken,
+            Accesstoken = Convert.ToBase64String(encryptionContext.Encrypt(dto.Accesstoken)),
             Institutionname = dto.Institutionname,
             Datelinked = dto.Datelinked,
             AccessTokenIv = dto.AccessTokenIv,

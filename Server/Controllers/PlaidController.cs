@@ -23,12 +23,10 @@ public class PlaidController : ControllerBase
     private readonly PlaidService plaidService;
     private readonly IPlaidItemRepository plaidItemRepository;
     private readonly ConfigProvider configProvider;
-    private readonly EncryptionContext encryptionContext;
 
-    public PlaidController(PlaidService plaidService, IPlaidItemRepository plaidItemRepository, ConfigProvider configProvider, EncryptionContext encryptionContext)
+    public PlaidController(PlaidService plaidService, IPlaidItemRepository plaidItemRepository, ConfigProvider configProvider)
     {
         this.configProvider = configProvider;
-        this.encryptionContext = encryptionContext;
         this.plaidService = plaidService;
         this.plaidItemRepository = plaidItemRepository;
     }
@@ -69,7 +67,9 @@ public class PlaidController : ControllerBase
                 o.Balances.Current,
             });
 
-            TransactionsGetResponse? transactionResponse = await plaidService.GetTransactionsAsync(exchangedResponse.AccessToken);
+            // TransactionsGetResponse? transactionResponse = await plaidService.GetTransactionsAsync(exchangedResponse.AccessToken);
+
+            var transactionSyncResponse = await plaidService.GetAllTransactionsSyncAsync(exchangedResponse.AccessToken);
 
             var result = await plaidItemRepository.GetPlaidItemAsync(userId, authInfo.Item.InstitutionName).Match(
                 Some: _ => { },
@@ -78,14 +78,17 @@ public class PlaidController : ControllerBase
                     // store access token in db instead of returning it to the client!
                     var response = (await plaidItemRepository.StorePlaidItemAsync(new PlaidItemDTO
                     {
+                        TransactionsCursor = transactionSyncResponse.cursor,
                         Userid = userId,
-                        Accesstoken = Convert.ToBase64String(encryptionContext.Encrypt(exchangedResponse.AccessToken)),
+                        Accesstoken = exchangedResponse.AccessToken,
                         Institutionname = authInfo.Item.InstitutionName,
                         Datelinked = DateTime.UtcNow,
                     })).Match(
                         Left: msg => new GeneralResponse(false, msg),
                         Right: _ => _
                     );
+
+                    // TODO: Store the list of queried transactions in streamlinedtransaction table
                 }
             );
 
@@ -93,7 +96,7 @@ public class PlaidController : ControllerBase
 
             return Ok(new
             {
-                transactionResponse,
+                // transactionResponse,
                 bankInfo,
                 name = authInfo.Item.InstitutionName,
             });

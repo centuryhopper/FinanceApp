@@ -150,6 +150,26 @@ app.MapControllers();
 // Catch-all route to serve index.html for React routes
 app.MapFallbackToFile("index.html");
 
+
+// TESTS (DONT USE IN PRODUCTION)
+app.MapGet("/api/test/get-accessToken/{userId:int}/{institutionName}",
+    async (int userId, string institutionName, IPlaidItemRepository plaidItemRepository) =>
+{
+    var record = await plaidItemRepository.GetPlaidItemAsync(userId, institutionName);
+
+    return Results.Ok(record.First());
+});
+
+app.MapGet("/api/test/get-transactions/{accessToken}",
+    async (string accessToken, PlaidService plaidService) =>
+{
+    var record = await plaidService.GetTransactionsAsync(accessToken);
+
+    return Results.Ok(record);
+});
+
+
+
 app.Run();
 
 // }

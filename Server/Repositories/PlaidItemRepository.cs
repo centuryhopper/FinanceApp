@@ -11,7 +11,7 @@ using Microsoft.OpenApi.Extensions;
 
 namespace Server.Repositories;
 
-public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext) : IPlaidItemRepository
+public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext, EncryptionContext encryptionContext) : IPlaidItemRepository
 {
     public EitherAsync<string, GeneralResponse> StorePlaidItemAsync(PlaidItemDTO? dto) => TryAsync(async () =>
     {
@@ -21,7 +21,7 @@ public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext) : IPla
         }
 
         // store dto in db
-        await financeAppDbContext.AddAsync(dto.ToEntity());
+        await financeAppDbContext.AddAsync(dto.ToEntity(encryptionContext));
         await financeAppDbContext.SaveChangesAsync();
 
         return new GeneralResponse(true, "Plaid item added");
@@ -33,15 +33,19 @@ public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext) : IPla
     {
         return await financeAppDbContext.Plaiditems
         .Where(item => item.Userid == userId)
-        .Select(item => item.ToDTO())
+        .Select(item => item.ToDTO(encryptionContext))
         .AsNoTracking()
         .ToListAsync();
     }
 
     public async Task<Option<PlaidItemDTO>> GetPlaidItemAsync(int userId, string institutionName)
     {
-        var entity = await financeAppDbContext.Plaiditems.Where(item => item.Userid == userId && item.Institutionname == institutionName).FirstOrDefaultAsync();
+        var entity = await financeAppDbContext.Plaiditems
+        .Where(item =>
+            item.Userid == userId && item.Institutionname.ToLower() == institutionName.ToLower()
+        )
+        .FirstOrDefaultAsync();
 
-        return entity is null ? None : Some(entity.ToDTO());
+        return entity is null ? None : Some(entity.ToDTO(encryptionContext));
     }
 }

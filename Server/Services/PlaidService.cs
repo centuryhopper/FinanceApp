@@ -35,22 +35,127 @@ public class PlaidService
 
     public async Task<TransactionsGetResponse> GetTransactionsAsync(string accessToken)
     {
-        var request = new TransactionsGetRequest
+        const int maxRetries = 5;
+        const int baseDelayMs = 1000; // 1 second
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            AccessToken = accessToken,
-            StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-2).Date),
-            EndDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
-            Options = new TransactionsGetRequestOptions
+            var request = new TransactionsGetRequest
             {
-                Count = 500,
-                DaysRequested = 730
+                AccessToken = accessToken,
+                StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-2).Date),
+                EndDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+                Options = new TransactionsGetRequestOptions
+                {
+                    // Count = 150,
+                    DaysRequested = 730,
+                },
+            };
+
+            var response = await plaidClient.TransactionsGetAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return response;
             }
-        };
 
-        var response = await plaidClient.TransactionsGetAsync(request);
+            // Check for PRODUCT_NOT_READY error
+            if (response.Error?.ErrorCode == "PRODUCT_NOT_READY")
+            {
+                if (attempt == maxRetries)
+                    throw new Exception("Transactions are still not ready after max retries.");
 
-        return response;
+                int delay = baseDelayMs * attempt;
+                Console.WriteLine($"Attempt {attempt}: Transactions not ready, retrying in {delay}ms...");
+                await Task.Delay(delay);
+                continue;
+            }
+
+            // Throw for any other errors
+            throw new Exception($"Plaid API error: {response.Error?.ErrorMessage}");
+        }
+
+        throw new Exception("Unexpected error in GetTransactionsAsync");
     }
+
+
+    public async Task<dynamic> GetAllTransactionsSyncAsync(string accessToken)
+    {
+        string cursor = null;
+        var allAdded = new List<Transaction>();
+        var allModified = new List<Transaction>();
+        var allRemoved = new List<RemovedTransaction>();
+
+        bool hasMore;
+        do
+        {
+            var request = new TransactionsSyncRequest
+            {
+                AccessToken = accessToken,
+                Cursor = cursor
+            };
+
+            var response = await plaidClient.TransactionsSyncAsync(request);
+
+            allAdded.AddRange(response.Added);
+            allModified.AddRange(response.Modified);
+            allRemoved.AddRange(response.Removed);
+
+            cursor = response.NextCursor;
+            hasMore = response.HasMore;
+        }
+        while (hasMore);
+
+        // Optionally convert to a custom model or return raw
+        return new
+        {
+            cursor,
+            list = allAdded
+            .OrderByDescending(t => t.Date)
+            .Select(t => new StreamlinedTransactionDTO
+            {
+                TransactionId = t.TransactionId!,
+                Name = t.Name!,
+                Amount = t.Amount.GetValueOrDefault(),
+                Date = t.Date,
+                Category = t.PersonalFinanceCategory?.Primary,
+            })
+            .ToList(),
+        };
+    }
+
+
+    // public async Task<TransactionsSyncResponse> GetTransactionsSyncAsync(string accessToken)
+    // {
+    //     var request = new TransactionsSyncRequest
+    //     {
+    //         AccessToken = accessToken,
+    //     };
+
+    //     var response = await plaidClient.TransactionsSyncAsync(request);
+
+    //     return response;
+    // }
+
+
+    // public async Task<TransactionsGetResponse> GetTransactionsAsync(string accessToken)
+    // {
+    //     var request = new TransactionsGetRequest
+    //     {
+    //         AccessToken = accessToken,
+    //         StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-2).Date),
+    //         EndDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+    //         Options = new TransactionsGetRequestOptions
+    //         {
+    //             // Count = 500,
+    //             DaysRequested = 730,
+    //         },
+    //     };
+
+    //     var response = await plaidClient.TransactionsGetAsync(request);
+
+    //     return response;
+    // }
 
     /// <summary>
     /// gets sent up to client app
@@ -71,7 +176,7 @@ public class PlaidService
             RedirectUri = null,
             Transactions = new LinkTokenTransactions
             {
-                DaysRequested = 730
+                DaysRequested = 365,
             }
         });
 
