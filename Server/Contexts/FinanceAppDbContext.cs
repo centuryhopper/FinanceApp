@@ -16,14 +16,66 @@ public partial class FinanceAppDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Bankinfo> Bankinfos { get; set; }
+
+    public virtual DbSet<Category> Categories { get; set; }
+
     public virtual DbSet<Plaiditem> Plaiditems { get; set; }
 
-    public virtual DbSet<Transaction> Transactions { get; set; }
+    public virtual DbSet<Streamlinedtransaction> Streamlinedtransactions { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Bankinfo>(entity =>
+        {
+            entity.HasKey(e => e.Bankinfoid).HasName("bankinfo_pkey");
+
+            entity.ToTable("bankinfo");
+
+            entity.Property(e => e.Bankinfoid).HasColumnName("bankinfoid");
+            entity.Property(e => e.Bankname).HasColumnName("bankname");
+            entity.Property(e => e.Totalbankbalance)
+                .HasPrecision(10, 2)
+                .HasColumnName("totalbankbalance");
+            entity.Property(e => e.Userid).HasColumnName("userid");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Bankinfos)
+                .HasForeignKey(d => d.Userid)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("bankinfo_userid_fkey");
+        });
+
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.HasKey(e => e.Categoryid).HasName("category_pkey");
+
+            entity.ToTable("category");
+
+            entity.Property(e => e.Categoryid).HasColumnName("categoryid");
+            entity.Property(e => e.Name).HasColumnName("name");
+
+            entity.HasMany(d => d.Streamlinedtransactions).WithMany(p => p.Categories)
+                .UsingEntity<Dictionary<string, object>>(
+                    "CategorytransactionJunc",
+                    r => r.HasOne<Streamlinedtransaction>().WithMany()
+                        .HasForeignKey("Streamlinedtransactionsid")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("categorytransaction_junc_streamlinedtransactionsid_fkey"),
+                    l => l.HasOne<Category>().WithMany()
+                        .HasForeignKey("Categoryid")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("categorytransaction_junc_categoryid_fkey"),
+                    j =>
+                    {
+                        j.HasKey("Categoryid", "Streamlinedtransactionsid").HasName("categorytransaction_junc_pkey");
+                        j.ToTable("categorytransaction_junc");
+                        j.IndexerProperty<int>("Categoryid").HasColumnName("categoryid");
+                        j.IndexerProperty<int>("Streamlinedtransactionsid").HasColumnName("streamlinedtransactionsid");
+                    });
+        });
+
         modelBuilder.Entity<Plaiditem>(entity =>
         {
             entity.HasKey(e => e.Plaiditemid).HasName("plaiditems_pkey");
@@ -46,36 +98,31 @@ public partial class FinanceAppDbContext : DbContext
                 .HasConstraintName("plaiditems_userid_fkey");
         });
 
-        modelBuilder.Entity<Transaction>(entity =>
+        modelBuilder.Entity<Streamlinedtransaction>(entity =>
         {
-            entity.HasKey(e => e.Transactionsid).HasName("transactions_pkey");
+            entity.HasKey(e => e.Streamlinedtransactionsid).HasName("streamlinedtransactions_pkey");
 
-            entity.ToTable("transactions");
+            entity.ToTable("streamlinedtransactions");
 
-            entity.Property(e => e.Transactionsid).HasColumnName("transactionsid");
-            entity.Property(e => e.Amount)
-                .HasPrecision(10, 2)
-                .HasColumnName("amount");
-            entity.Property(e => e.Balance)
-                .HasPrecision(10, 2)
-                .HasColumnName("balance");
-            entity.Property(e => e.Checkorslip).HasColumnName("checkorslip");
-            entity.Property(e => e.Description)
-                .HasMaxLength(256)
-                .HasColumnName("description");
-            entity.Property(e => e.Details)
-                .HasMaxLength(15)
-                .HasColumnName("details");
-            entity.Property(e => e.Postingdate).HasColumnName("postingdate");
-            entity.Property(e => e.Type)
-                .HasMaxLength(64)
-                .HasColumnName("type");
+            entity.Property(e => e.Streamlinedtransactionsid).HasColumnName("streamlinedtransactionsid");
+            entity.Property(e => e.Amount).HasColumnName("amount");
+            entity.Property(e => e.Bankinfoid).HasColumnName("bankinfoid");
+            entity.Property(e => e.Date).HasColumnName("date");
+            entity.Property(e => e.Environmenttype).HasColumnName("environmenttype");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.Transactionid).HasColumnName("transactionid");
             entity.Property(e => e.Userid).HasColumnName("userid");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Transactions)
+            entity.HasOne(d => d.Bankinfo).WithMany(p => p.Streamlinedtransactions)
+                .HasForeignKey(d => d.Bankinfoid)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_streamlinedtransactions_bankinfo");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Streamlinedtransactions)
                 .HasForeignKey(d => d.Userid)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("transactions_userid_fkey");
+                .HasConstraintName("streamlinedtransactions_userid_fkey");
         });
 
         modelBuilder.Entity<User>(entity =>

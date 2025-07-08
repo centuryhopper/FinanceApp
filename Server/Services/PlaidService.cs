@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Going.Plaid;
 using Going.Plaid.Auth;
 using Going.Plaid.Entity;
@@ -16,11 +17,12 @@ public class PlaidService
 {
     private readonly PlaidClient plaidClient;
     private readonly ConfigProvider configProvider;
+    private readonly IHttpContextAccessor httpContextAccessor;
 
-    public PlaidService(ConfigProvider configProvider)
+    public PlaidService(ConfigProvider configProvider, IHttpContextAccessor httpContextAccessor)
     {
         this.configProvider = configProvider;
-
+        this.httpContextAccessor = httpContextAccessor;
         plaidClient = new PlaidClient(
             environment: configProvider.PlaidEnvironment switch
             {
@@ -79,9 +81,9 @@ public class PlaidService
     }
 
 
-    public async Task<dynamic> GetAllTransactionsSyncAsync(string accessToken)
+    public async Task<PlaidTransactionDTO> GetAllTransactionsSyncAsync(string accessToken, string? latestCursor)
     {
-        string cursor = null;
+        string? cursor = latestCursor;
         var allAdded = new List<Transaction>();
         var allModified = new List<Transaction>();
         var allRemoved = new List<RemovedTransaction>();
@@ -105,15 +107,18 @@ public class PlaidService
             hasMore = response.HasMore;
         }
         while (hasMore);
+        
+        var userId = int.Parse(httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
         // Optionally convert to a custom model or return raw
-        return new
+        return new()
         {
-            cursor,
-            list = allAdded
+            Cursor = cursor,
+            StreamlinedTransactionDTOs = allAdded
             .OrderByDescending(t => t.Date)
             .Select(t => new StreamlinedTransactionDTO
             {
+                UserId = userId,
                 TransactionId = t.TransactionId!,
                 Name = t.Name!,
                 Amount = t.Amount.GetValueOrDefault(),
@@ -207,21 +212,29 @@ public class PlaidService
         throw new Exception("Failed to exchange public token: " + response.Error?.ErrorMessage);
     }
 
-    public async Task<AuthGetResponse> GetAuthInfoAsync(string accessToken)
+    public async Task<AuthGetResponse?> GetAuthInfoAsync(string accessToken)
     {
-        var request = new AuthGetRequest
+        try
         {
-            AccessToken = accessToken
-        };
+            var request = new AuthGetRequest
+            {
+                AccessToken = accessToken
+            };
 
-        var response = await plaidClient.AuthGetAsync(request);
+            var response = await plaidClient.AuthGetAsync(request);
 
-        if (response.IsSuccessStatusCode)
-        {
-            return response;
+            if (response.IsSuccessStatusCode)
+            {
+                return response;
+            }
+
+            throw new Exception("Failed to retrieve auth info: " + response.Error?.ErrorMessage);
+
         }
-
-        throw new Exception("Failed to retrieve auth info: " + response.Error?.ErrorMessage);
+        catch (Exception ex)
+        {
+            return null;
+        }
     }
 
 

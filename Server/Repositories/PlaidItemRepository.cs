@@ -21,7 +21,7 @@ public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext, Encryp
         }
 
         // store dto in db
-        await financeAppDbContext.AddAsync(dto.ToEntity(encryptionContext));
+        await financeAppDbContext.Plaiditems.AddAsync(dto.ToEntity(encryptionContext));
         await financeAppDbContext.SaveChangesAsync();
 
         return new GeneralResponse(true, "Plaid item added");
@@ -48,4 +48,20 @@ public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext, Encryp
 
         return entity is null ? None : Some(entity.ToDTO(encryptionContext));
     }
+
+    public EitherAsync<string, GeneralResponse> UpdatePlaidItemAsync(PlaidItemDTO? dto) => TryAsync(async () =>
+    {
+        if (dto is null)
+        {
+            return new GeneralResponse(false, "PlaidItemDTO cannot be null");
+        }
+
+        // store dto in db
+        var entity = await financeAppDbContext.Plaiditems.FindAsync(dto.Plaiditemid);
+        entity!.TransactionsCursor = dto.TransactionsCursor;
+        await financeAppDbContext.SaveChangesAsync();
+
+        return new GeneralResponse(true, "Plaid item added");
+
+    }).ToEither(ex => ex.Message);
 }

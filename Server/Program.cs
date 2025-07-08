@@ -10,6 +10,16 @@ using Server.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.RateLimiting;
+
+
+/*
+TODO: create the streamlinedtransactions table to include these fields only DONE
+TODO: Perhaps have a categories table (categoryid, category name) and a categories and transactions junction table (transactionid categoryid) DONE
+TODO: create an api call that syncs the latest transactions with your application DONE
+TODO: if user tries to sync a bank that is already connected then don't query any transactions and just show pop up on client side that bank has already been linked
+
+*/
 
 
 // MUST HAVE IT LIKE THIS FOR NLOG TO RECOGNIZE DOTNET USER-SECRETS INSTEAD OF HARDCODED DELIMIT PLACEHOLDER VALUE FROM APPSETTINGS.JSON
@@ -37,6 +47,7 @@ builder.Services.AddPlaid(builder.Configuration.GetSection("Plaid"));
 // builder.Host.UseNLog();
 
 builder.Services.AddHttpClient();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<PlaidService>();
 
@@ -87,7 +98,7 @@ builder
     });
 
 
-// To update FinanceAppDbContext, type dotnet ef dbcontext scaffold "connection string" Npgsql.EntityFrameworkCore.PostgreSQL -o Entities -c FinanceAppDbContext --context-dir Contexts -t plaiditems -t transactions -t users
+// To update FinanceAppDbContext, type dotnet ef dbcontext scaffold "connection string" Npgsql.EntityFrameworkCore.PostgreSQL -o Entities -c FinanceAppDbContext --context-dir Contexts -t plaiditems -t streamlinedtransactions -t users -t category -t categorytransaction_junc -t bankinfo
 builder.Services.AddDbContext<FinanceAppDbContext>(options =>
 {
     options.UseNpgsql(
@@ -95,9 +106,10 @@ builder.Services.AddDbContext<FinanceAppDbContext>(options =>
     ).EnableSensitiveDataLogging();
 });
 
-
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IPlaidItemRepository, PlaidItemRepository>();
+builder.Services.AddScoped<IBankRepository, BankRepository>();
+builder.Services.AddScoped<IStreamlinedTransactionsRepository, StreamlinedtransactionsRepository>();
 
 
 if (!builder.Environment.IsDevelopment())
@@ -121,6 +133,18 @@ builder.Services.AddCors(options =>
                 .AllowCredentials();
         }
     );
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("TransactionsSyncing", options =>
+    {
+        options.PermitLimit = 1;
+        options.Window = TimeSpan.FromHours(24);
+        // options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        options.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
 var app = builder.Build();

@@ -23,7 +23,9 @@ public partial class User
 
     public DateTime? Dateretired { get; set; }
 
+    public virtual ICollection<Bankinfo> Bankinfos { get; set; } = new List<Bankinfo>();
+
     public virtual ICollection<Plaiditem> Plaiditems { get; set; } = new List<Plaiditem>();
 
-    public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    public virtual ICollection<Streamlinedtransaction> Streamlinedtransactions { get; set; } = new List<Streamlinedtransaction>();
 }

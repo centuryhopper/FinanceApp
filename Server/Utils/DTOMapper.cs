@@ -53,35 +53,54 @@ public static class DTOMapper
         };
     }
 
-    // public static ChaseTransactionsDTO ToChaseTransactionsDTO(this Transaction transaction)
-    // {
-    //     return new()
-    //     {
-    //         Transactionsid = transaction.Transactionsid,
-    //         Userid = transaction.Userid,
-    //         Details = transaction.Details,
-    //         PostingDate = transaction.Postingdate,
-    //         Description = transaction.Description,
-    //         Amount = transaction.Amount.ToString(),
-    //         Type = transaction.Type,
-    //         Balance = transaction.Balance.ToString(),
-    //         CheckOrSlip = transaction.Checkorslip.ToString(),
-    //     };
-    // }
+    public static Bankinfo ToEntity(this BankInfoDTO dto)
+    {
+        return new()
+        {
+            Userid = dto.Userid,
+            Bankname = dto.Bankname,
+            Totalbankbalance = dto.Totalbankbalance,
+            Bankinfoid = dto.Bankinfoid,
+        };
+    }
 
-    // public static Transaction ToTransactions(this ChaseTransactionsDTO dto)
-    // {
-    //     return new()
-    //     {
-    //         Transactionsid = dto.Transactionsid,
-    //         Userid = dto.Userid,
-    //         Details = dto.Details,
-    //         Postingdate = dto.PostingDate,
-    //         Description = dto.Description,
-    //         Amount = string.IsNullOrWhiteSpace(dto.Amount) ? null : Convert.ToDecimal(dto.Amount),
-    //         Type = dto.Type,
-    //         Balance = string.IsNullOrWhiteSpace(dto.Balance) ? null : Convert.ToDecimal(dto.Balance),
-    //         Checkorslip = string.IsNullOrWhiteSpace(dto.CheckOrSlip) ? null : Convert.ToInt32(dto.CheckOrSlip),
-    //     };
-    // }
+    public static BankInfoDTO ToDTO(this Bankinfo obj)
+    {
+        return new()
+        {
+            Userid = obj.Userid,
+            Bankname = obj.Bankname,
+            Totalbankbalance = obj.Totalbankbalance,
+            Bankinfoid = obj.Bankinfoid,
+        };
+    }
+
+    public static StreamlinedTransactionDTO ToDTO(this Streamlinedtransaction obj)
+    {
+        return new()
+        {
+            UserId = obj.Userid.Value,
+            TransactionId = obj.Transactionid,
+            Name = obj.Name,
+            Note = obj.Note,
+            Amount = obj.Amount.Value,
+            Date = DateOnly.FromDateTime(obj.Date.Value),
+            EnvironmentType = obj.Environmenttype,
+            Category = obj.Categories.First().Name,
+        };
+    }
+
+    public static Streamlinedtransaction ToEntity(this StreamlinedTransactionDTO dto)
+    {
+        return new()
+        {
+            Userid = dto.UserId,
+            Transactionid = dto.TransactionId,
+            Name = dto.Name,
+            Note = dto.Note,
+            Amount = dto.Amount,
+            Date = dto.Date is null ? null : DateTime.SpecifyKind(dto.Date.Value.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+            Environmenttype = dto.EnvironmentType,
+        };
+    }
 }

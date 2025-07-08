@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS Transactions (
 
 
 -- Create PlaidItems table
-CREATE TABLE PlaidItems (
+CREATE TABLE IF NOT EXISTS PlaidItems (
     PlaidItemId SERIAL PRIMARY KEY,
     UserId INT REFERENCES Users(ID) ON DELETE CASCADE,
     AccessToken TEXT NOT NULL,
@@ -42,5 +42,39 @@ CREATE TABLE PlaidItems (
     DateLinked TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS Category
+(
+    CategoryId SERIAL PRIMARY KEY,
+    Name TEXT
+);
+
+CREATE TABLE IF NOT EXISTS BankInfo
+(
+    BankInfoId SERIAL PRIMARY KEY,
+    UserId INT REFERENCES Users(ID) ON DELETE CASCADE,
+    BankName TEXT NOT NULL,
+    TotalBankBalance DECIMAL(10, 2) NOT NULL,
+);
 
 
+CREATE TABLE IF NOT EXISTS StreamlinedTransactions (
+    StreamLinedTransactionsId SERIAL PRIMARY KEY,
+    UserId INT REFERENCES Users(ID) ON DELETE CASCADE,
+    TransactionId TEXT,
+    Name TEXT,
+    CategoryId INT,
+    Note TEXT,
+    Amount DECIMAL,
+    Date TIMESTAMPTZ,
+    EnvironmentType TEXT
+);
+
+
+CREATE TABLE IF NOT EXISTS CategoryTransaction_Junc
+(
+    CategoryId INT,
+    StreamLinedTransactionsId INT,
+    PRIMARY KEY (CategoryId, StreamLinedTransactionsId),
+    FOREIGN KEY (CategoryId) REFERENCES Category(CategoryId),
+    FOREIGN KEY (StreamLinedTransactionsId) REFERENCES StreamlinedTransactions(StreamLinedTransactionsId)
+);
