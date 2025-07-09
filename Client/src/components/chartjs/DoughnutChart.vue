@@ -1,59 +1,93 @@
 <!-- components/DoughnutChart.vue -->
 <script setup lang="ts">
-import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
+import { ArcElement, Chart, Chart as ChartJS, Legend, Tooltip } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import { Doughnut } from "vue-chartjs";
+import { computed, onBeforeUnmount, ref, watch, watchEffect } from "vue";
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
-const chartData = {
-  // labels: ["Apples", "Bananas", "Cherries"],
-  datasets: [
-    {
-      data: [10, 20, 30],
-      backgroundColor: ["#f43f5e", "#facc15", "#34d399"],
-    },
-  ],
-};
+import type { CategorySum } from "../../types/CategorySum";
+import { randomHexColor } from "../../utils/utils";
 
-const chartOptions = {
-  responsive: true,
-  // plugins: {
-  //   title: {
-  //     display: true,
-  //     color: "#ffffff",
-  //     text: "Spending Distribution",
-  //     font: {
-  //       size: 18,
-  //       weight: "bold",
-  //     },
-  //   },
-  //   datalabels: {
-  //     color: "#fff",
-  //     font: {
-  //       weight: "bold" as const,
-  //     },
-  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //     formatter: (value: number, context: any) => {
-  //       const data = context.chart.data.datasets[0].data;
-  //       const total = data.reduce((sum: number, val: number) => sum + val, 0);
-  //       return `${((value / total) * 100).toFixed(1)}%`;
-  //     },
-  //   },
-  //   legend: {
-  //     position: "bottom",
-  //   },
-  // },
-  cutout: "60%",
-};
+const { categoryTotals } = defineProps<{
+  categoryTotals: CategorySum;
+}>();
 
-// export default {
-//   name: 'DoughnutChart'
-// }
+const labels = ref<string[]>([]);
+const data = ref<number[]>([]);
+
+const l = computed(() => [...labels.value]);
+const d = computed(() => [...data.value]);
+
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+let chartInstance: Chart | null = null;
+
+watch(() => categoryTotals, (newTotals) => {
+  // console.log('categoryTotals',categoryTotals);
+  labels.value = Object.keys(newTotals);
+  data.value = Object.values(newTotals);
+
+  if (canvasRef.value && labels.value && data.value) {
+    // Destroy existing chart if present
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
+    chartInstance = new Chart(canvasRef.value, {
+      type: "doughnut",
+      data: {
+        labels: l.value,
+        datasets: [
+          {
+            label: "",
+            data: d.value,
+            backgroundColor: l.value.map((_) => randomHexColor()),
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          datalabels: {
+            color: "#ffffff", // text color of the labels on bars
+            anchor: "center", // position relative to bar (start, center, end)
+            align: "center", // alignment of the label (start, center, end, top, bottom)
+            font: { weight: "bold" },
+            formatter: (value) => value.toFixed(2), // format the number
+            // offset: 6,
+          },
+          legend: {
+            display: false,
+            labels: {
+              color: "#ffffff",
+            },
+          },
+          title: {
+            display: true,
+            text: "Spendings",
+            color: "#ffffff",
+            font: {
+              size: 18,
+              weight: "bold",
+            },
+          },
+        },
+      },
+    });
+  }
+
+  // console.log(l.value);
+  // console.log(d.value);
+}, { immediate: true, deep: true });
+
+onBeforeUnmount(() => {
+  chartInstance?.destroy();
+});
 </script>
 
 <template>
   <!-- <div style="width: 25rem; height: 25rem"> -->
-  <Doughnut :data="chartData" :options="chartOptions" />
+  <!-- <Doughnut :data="chartData" :options="chartOptions" /> -->
   <!-- </div> -->
+  <canvas ref="canvasRef"></canvas>
 </template>

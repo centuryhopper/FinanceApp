@@ -3,74 +3,119 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
 import {
+  BarController,
+  BarElement,
+  CategoryScale,
   Chart,
+  Legend,
+  LinearScale,
+  Title,
+  Tooltip,
+} from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+import { computed, onBeforeUnmount, ref, watchEffect } from "vue";
+import type { CategorySum } from "../../types/CategorySum";
+import { randomHexColor } from "../../utils/utils";
+
+const { categoryTotals } = defineProps<{
+  categoryTotals: CategorySum;
+}>();
+
+const labels = ref<string[]>([]);
+const data = ref<number[]>([]);
+
+const l = computed(() => [...labels.value]);
+const d = computed(() => [...data.value]);
+
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+let chartInstance: Chart | null = null;
+
+watchEffect(() => {
+  // console.log('categoryTotals',categoryTotals);
+  labels.value = Object.keys(categoryTotals);
+  data.value = Object.values(categoryTotals);
+
+  if (canvasRef.value && labels.value && data.value) {
+    // Destroy existing chart if present
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
+    chartInstance = new Chart(canvasRef.value, {
+      type: "bar",
+      data: {
+        labels: l.value,
+        datasets: [
+          {
+            label: "",
+            data: d.value,
+            backgroundColor: l.value.map((_) => randomHexColor()),
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          datalabels: {
+            color: "#ffffff", // text color of the labels on bars
+            anchor: "center", // position relative to bar (start, center, end)
+            align: "center", // alignment of the label (start, center, end, top, bottom)
+            font: { weight: "bold" },
+            formatter: (value) => value.toFixed(2), // format the number
+            // offset: 6,
+          },
+          legend: {
+            display: false,
+            labels: {
+              color: "#ffffff",
+            },
+          },
+          title: {
+            display: true,
+            text: "Spendings",
+            color: "#ffffff",
+            font: {
+              size: 18,
+              weight: "bold",
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#ffffff",
+            },
+          },
+          y: {
+            ticks: {
+              color: "#ffffff",
+            },
+          },
+        },
+      },
+    });
+  }
+
+  // console.log(l.value);
+  // console.log(d.value);
+});
+
+// Register only what you need
+Chart.register(
   BarController,
   BarElement,
   CategoryScale,
   LinearScale,
   Title,
   Tooltip,
-  Legend
-} from 'chart.js'
-
-// Register only what you need
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend)
-
-const canvasRef = ref<HTMLCanvasElement | null>(null)
-let chartInstance: Chart | null = null
-
-onMounted(() => {
-  if (canvasRef.value) {
-    chartInstance = new Chart(canvasRef.value, {
-      type: 'bar',
-      data: {
-        labels: ['Red', 'Blue', 'Yellow'],
-        datasets: [{
-          label: 'Votes',
-          data: [12, 19, 3],
-          backgroundColor: ['#f87171', '#60a5fa', '#facc15']
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            labels: {
-              color: '#ffffff'
-            }
-          },
-          title: {
-            display: true,
-            text: 'Color Popularity',
-            color: '#ffffff',
-            font: {
-              size: 18,
-              weight: 'bold'
-            }
-          }
-        },
-        scales: {
-          x: {
-            ticks: {
-              color: '#ffffff'
-            }
-          },
-          y: {
-            ticks: {
-              color: '#ffffff'
-            }
-          }
-        }
-      }
-    })
-  }
-})
+  Legend,
+  ChartDataLabels
+);
 
 onBeforeUnmount(() => {
-  chartInstance?.destroy()
-})
+  chartInstance?.destroy();
+});
 </script>
 
 <style scoped>

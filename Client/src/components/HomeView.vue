@@ -15,60 +15,86 @@
             style="max-width: 300px"
           >
             <h5 class="text-center">My accounts</h5>
-
-            <ul class="list-unstyled mb-0 flex-grow-1 overflow-auto align-content-around">
-              <li
-                :key="bank.id"
-                v-for="bank in bankAccounts"
-                class="d-flex justify-content-between mb-1"
+            <div v-if="!banksLoaded">
+              <div class="d-flex justify-content-center">
+                <div class="spinner-border" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            </div>
+            <div v-else-if="banks.length === 0 && banksLoaded">
+              <p>No bank accounts were added yet</p>
+            </div>
+            <div v-else>
+              <ul
+                class="list-unstyled mb-0 flex-grow-1 overflow-auto align-content-around"
               >
-                <span>{{ bank.name }}</span>
-                <strong> ${{ bank.totalBalance }}</strong>
-              </li>
-            </ul>
+                <li
+                  :key="bank.bankinfoid"
+                  v-for="bank in banks"
+                  class="d-flex justify-content-between mb-1 bank-selection"
+                  @click="onBankSelection(bank.bankname)"
+                >
+                  <span>{{ bank.bankname }}</span>
+                  <strong> ${{ bank.totalbankbalance }}</strong>
+                </li>
+              </ul>
 
-            <hr class="my-2" />
-            <div class="d-flex justify-content-between mt-auto pt-2">
-              <span>Total</span>
-              <strong>${{ balanceTotal }}</strong>
+              <hr class="my-2" />
+              <div class="d-flex justify-content-between mt-auto pt-2">
+                <span>Total</span>
+                <strong>${{ balanceTotal }}</strong>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="col-md-6">
           <div class="card p-3 shadow-sm w-100 h-100" style="max-width: 500px">
-            <h5 class="mb-3 fw-semibold text-center">Upcoming transactions</h5>
-            <ul class="list-unstyled">
-              <li
-                :key="transaction.id"
-                v-for="transaction in fiveMostRecentTransactions"
-                class="d-flex align-items-center mb-2 gap-2"
-              >
-                <div class="text-nowrap text-center" style="width: 90px">
-                  {{ transaction.date }}
+            <h5 class="mb-3 fw-semibold text-center">Most recent transactions</h5>
+            <div v-if="!transactionsLoaded">
+              <div class="d-flex justify-content-center">
+                <div class="spinner-border" role="status">
+                  <span class="visually-hidden">Loading...</span>
                 </div>
-                <div
-                  :class="`fw-semibold  ${
-                    transaction.amount < 0
-                      ? 'badge bg-danger-subtle text-danger'
-                      : 'badge bg-success-subtle text-success'
-                  } rounded-pill text-center`"
-                  style="width: 90px"
+              </div>
+            </div>
+            <div v-else-if="recentTransactions.length === 0 && transactionsLoaded">
+              <p>No transactions were saved yet</p>
+            </div>
+            <div v-else>
+              <ul class="list-unstyled">
+                <li
+                  :key="transaction.id"
+                  v-for="transaction in recentTransactions"
+                  class="d-flex align-items-center mb-2 gap-2"
                 >
-                  {{ transaction.amount > 0 ? "+" : "-" }}${{
-                    Math.abs(transaction.amount)
-                  }}
-                </div>
-                <div class="text-center flex-grow-1 text-center">
-                  {{ transaction.merchant }}
-                </div>
-                <span
-                  class="badge bg-success-subtle text-success rounded-pill text-center"
-                >
-                  {{ transaction.category }}
-                </span>
-              </li>
-            </ul>
+                  <div class="text-nowrap text-center" style="width: 90px">
+                    {{ transaction.date }}
+                  </div>
+                  <div
+                    :class="`fw-semibold  ${
+                      transaction.amount < 0
+                        ? 'badge bg-danger-subtle text-danger'
+                        : 'badge bg-success-subtle text-success'
+                    } rounded-pill text-center`"
+                    style="width: 90px"
+                  >
+                    {{ transaction.amount > 0 ? "+" : "-" }}${{
+                      Math.abs(transaction.amount)
+                    }}
+                  </div>
+                  <div class="text-center flex-grow-1 text-center">
+                    {{ transaction.name }}
+                  </div>
+                  <span
+                    class="badge bg-success-subtle text-success rounded-pill text-center"
+                  >
+                    {{ transaction.category }}
+                  </span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -89,82 +115,88 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import axios from "axios";
+import { computed, onMounted, ref } from "vue";
 import { usePlaid } from "../composables/usePlaid";
 import useSweetAlertPopups from "../composables/useSweetAlertPopups";
 import { authStore } from "../stores/auth";
+import type { BankInfo } from "../types/BankInfo";
+import type { Transaction } from "../types/Transactions";
 
 const authStre = authStore();
 // console.log(authStre.claims);
 const { linkPlaid } = usePlaid();
 const { showFeedbackPopup } = useSweetAlertPopups();
 
-const bankAccounts = ref([
-  {
-    id: 0,
-    name: "Truist",
-    totalBalance: 3000,
-  },
-  {
-    id: 1,
-    name: "CIT Savings",
-    totalBalance: 5000,
-  },
-]);
-
-const fiveMostRecentTransactions = ref([
-  {
-    id: 5,
-    date: "2023-11-16",
-    amount: -120,
-    merchant: "Spotify",
-    category: "Entertainment",
-  },
-  {
-    id: 6,
-    date: "2023-11-17",
-    amount: 520,
-    merchant: "Upwork",
-    category: "Freelance",
-  },
-  {
-    id: 7,
-    date: "2023-11-17",
-    amount: -65,
-    merchant: "Netflix",
-    category: "Entertainment",
-  },
-  {
-    id: 8,
-    date: "2023-11-18",
-    amount: 3500,
-    merchant: "Company Co.",
-    category: "Bonus",
-  },
-  {
-    id: 9,
-    date: "2023-11-18",
-    amount: -45,
-    merchant: "Apple",
-    category: "App Store",
-  },
-]);
-
+const banks = ref<BankInfo[]>([]);
+let banksLoaded = ref(false);
 const balanceTotal = computed(() =>
-  bankAccounts.value.reduce((acc, currentAccount) => currentAccount.totalBalance + acc, 0)
+  banks.value.reduce((acc, currentAccount) => currentAccount.totalbankbalance + acc, 0)
 );
 
-// const bankLink = async (bankAccountName: string) => {
-//   await showFeedbackPopup(
-//     true,
-//     `Link to ${bankAccountName} successful!`,
-//     `Link to ${bankAccountName} unsuccessful :/`
-//   );
-// };
+const recentTransactions = ref<Transaction[]>([]);
+const transactionsLoaded = ref(false);
 
-// onMounted(() => {
-//   console.log('home mounted');
-// })
+const onBankSelection = async (bankName: string) => {
+  // get transactions depending on the bank selected
+  const currentInstitution = sessionStorage.getItem("selectedBank");
+  if (bankName === currentInstitution) {
+    console.log("already selected");
+    return;
+  }
+
+  transactionsLoaded.value = false;
+
+  const transactionsResponse = await axios.get<Transaction[]>(
+    "api/Bank/recent-transactions/" + bankName,
+    {
+      headers: {
+        Authorization: `Bearer ${authStre.token}`,
+      },
+    }
+  );
+
+  recentTransactions.value = transactionsResponse.data;
+  transactionsLoaded.value = true;
+};
+
+onMounted(async () => {
+  if (!authStre.isAuthenticated) {
+    return;
+  }
+  try {
+    const bankResponse = await axios.get<BankInfo[]>("api/Bank/get-banks", {
+      headers: {
+        Authorization: `Bearer ${authStre.token}`,
+      },
+    });
+    // console.log(transactionsResponse);
+    banks.value = bankResponse.data;
+    banksLoaded.value = true;
+
+    if (banks.value.length === 0) {
+      return;
+    }
+
+    const firstInstitution = banks.value[0].bankname;
+    sessionStorage.setItem("selectedBank", firstInstitution);
+
+    const transactionsResponse = await axios.get<Transaction[]>(
+      "api/Bank/recent-transactions/" + firstInstitution,
+      {
+        headers: {
+          Authorization: `Bearer ${authStre.token}`,
+        },
+      }
+    );
+
+    recentTransactions.value = transactionsResponse.data;
+    transactionsLoaded.value = true;
+  } catch (e) {
+    console.error("Error fetching banks:", e);
+    await showFeedbackPopup(false, "", "Please try again later.");
+  }
+});
 
 /*
 transaction model:
@@ -178,11 +210,10 @@ transaction model:
 </script>
 
 <style scoped>
-/* * {
-  color: white;
-} */
-
-/* .card {
-  background-color: #2b2d30;
-} */
+.bank-selection {
+  cursor: pointer;
+}
+.bank-selection:hover {
+  background-image: linear-gradient(135deg, #6e8efb, #a777e3);
+}
 </style>

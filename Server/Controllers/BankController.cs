@@ -44,5 +44,7 @@ namespace Server.Controllers
             var transactions = await streamlinedTransactionsRepository.GetTransactionsAsync(institutionName, userId, 5);
             return Ok(transactions);
         }
+
+        
     }
 }

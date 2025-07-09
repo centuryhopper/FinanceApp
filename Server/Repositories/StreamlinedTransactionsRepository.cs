@@ -7,13 +7,15 @@ using LanguageExt;
 using static LanguageExt.Prelude;
 using Server.Utils;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using Server.Entities;
 
 namespace Server.Repositories;
 
 
 public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbContext) : IStreamlinedTransactionsRepository
 {
-    public async Task<IEnumerable<StreamlinedTransactionDTO>> GetTransactionsAsync(string institutionName, int userId, int numTransactions)
+    public async Task<IEnumerable<StreamlinedTransactionDTO>> GetTransactionsAsync(string institutionName, int userId, int? numTransactions)
     {
         var bankInfo = await financeAppDbContext.Bankinfos.FirstOrDefaultAsync(b => b.Bankname == institutionName && b.Userid == userId);
 
@@ -22,10 +24,16 @@ public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbC
             throw new Exception($"Bank info for institution '{institutionName}' and user ID '{userId}' not found.");
         }
 
-        var transactions = await financeAppDbContext.Streamlinedtransactions
+        IQueryable<Streamlinedtransaction> query = financeAppDbContext.Streamlinedtransactions
         .Where(t => t.Userid == userId && t.Bankinfoid == bankInfo.Bankinfoid)
-        .Take(numTransactions)
-        .Include(t => t.Categories)
+        .OrderByDescending(t => t.Date);
+
+        if (numTransactions.HasValue)
+        {
+            query = query.Take(numTransactions.Value);
+        }
+
+        var transactions = await query.Include(t => t.Categories)
         .Select(t => t.ToDTO())
         .ToListAsync();
 

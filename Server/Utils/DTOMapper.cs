@@ -79,6 +79,7 @@ public static class DTOMapper
     {
         return new()
         {
+            Id = obj.Streamlinedtransactionsid,
             UserId = obj.Userid.Value,
             TransactionId = obj.Transactionid,
             Name = obj.Name,
