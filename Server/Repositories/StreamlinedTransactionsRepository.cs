@@ -15,6 +15,57 @@ namespace Server.Repositories;
 
 public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbContext) : IStreamlinedTransactionsRepository
 {
+    public async Task<IEnumerable<MonthlySpendingDTO>> GetMonthlySpendingsAsync(string institutionName, int userId)
+    {
+        var bankInfo = await financeAppDbContext.Bankinfos.FirstOrDefaultAsync(b => b.Bankname == institutionName && b.Userid == userId);
+
+        if (bankInfo == null)
+        {
+            throw new Exception($"Bank info for institution '{institutionName}' and user ID '{userId}' not found.");
+        }
+
+        var result = await financeAppDbContext.Streamlinedtransactions
+        .Where(t => t.Userid == userId && t.Bankinfoid == bankInfo.Bankinfoid)
+        .Include(t => t.Categories)
+        .SelectMany(t => t.Categories.Select(c => new
+        {
+            t.Date,
+            t.Amount,
+            Category = c.Name,
+        }))
+        .GroupBy(x => new
+        {
+            x.Date.Value.Year,
+            x.Date.Value.Month,
+            Category = x.Category,
+        })
+        .Select(g => new
+        {
+            g.Key.Year,
+            g.Key.Month,
+            g.Key.Category,
+            Total = g.Sum(x => x.Amount.Value)
+        })
+        .OrderByDescending(x => x.Year)
+        .ThenByDescending(x => x.Month)
+        .ThenByDescending(x => x.Total)
+        .Where(x => x.Total > 0)
+        .ToListAsync();
+
+        // Format result in-memory
+        var finalResult = result.Select(r => new MonthlySpendingDTO
+        {
+            Month = $"{r.Year:D4}-{r.Month:D2}", // format like "2025-07"
+            CategorySum = new CategorySum
+            {
+                Category = r.Category,
+                Total = r.Total
+            }
+        }).ToList();
+
+        return finalResult;
+    }
+
     public async Task<IEnumerable<StreamlinedTransactionDTO>> GetTransactionsAsync(string institutionName, int userId, int? numTransactions)
     {
         var bankInfo = await financeAppDbContext.Bankinfos.FirstOrDefaultAsync(b => b.Bankname == institutionName && b.Userid == userId);

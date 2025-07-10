@@ -13,7 +13,7 @@
       <div class="row m-3">
         <div class="col-lg-3"></div>
         <div class="col-lg-6">
-          <BarChart :categoryTotals="readonlyCategoryTotals"/>
+          <BarChart :categoryTotals="readonlyCategoryTotals" />
         </div>
         <div class="col-lg-3"></div>
       </div>
@@ -21,14 +21,14 @@
       <div class="row">
         <div class="col-lg-3"></div>
         <div class="col-lg-6">
-          <HorizontalStackedChart />
+          <HorizontalStackedChart :monthlySpending="readonlyMonthlySpending" />
         </div>
         <div class="col-lg-3"></div>
       </div>
 
-      <!-- <div class="m-3">
+      <div class="m-3">
         <TransactionsGrid :transactions="transactions" />
-      </div> -->
+      </div>
     </div>
   </div>
   <div v-else>
@@ -43,10 +43,12 @@ import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import { authStore } from "../stores/auth";
 import type { CategorySum } from "../types/CategorySum";
+import type { MonthlySpending } from "../types/MonthlySpending";
 import type { Transaction } from "../types/Transactions";
 import BarChart from "./chartjs/BarChart.vue";
 import DoughnutChart from "./chartjs/DoughnutChart.vue";
 import HorizontalStackedChart from "./chartjs/HorizontalStackedChart.vue";
+import TransactionsGrid from "./TransactionsGrid.vue";
 
 const selectedBank = sessionStorage.getItem("selectedBank");
 const didSelectBank = ref(!!selectedBank);
@@ -56,42 +58,61 @@ const transactions = ref<Transaction[]>([]);
 const categoryTotals = ref<CategorySum>({});
 const readonlyCategoryTotals = computed(() => categoryTotals.value ?? {});
 
+const monthlySpending = ref<MonthlySpending[]>([]);
+const readonlyMonthlySpending = computed(() => monthlySpending.value ?? []);
+
 onMounted(async () => {
-  if (didSelectBank.value) {
-    const response = await axios.get<Transaction[]>(
-      "api/Dashboard/transactions/" + selectedBank,
-      {
-        headers: {
-          Authorization: `Bearer ${authStre.token}`,
-        },
-      }
-    );
-
-    transactions.value = response.data;
-
-    // Get all its unique categories and use an obj to store them as keys and values will be the sum of all the amounts spent in those categories:
-    const uniqueCategories = [
-      ...new Set(transactions.value.map((t) => t.category).filter((c) => !!c)),
-    ];
-
-    // console.log(uniqueCategories);
-
-    const tempTotals: CategorySum = {};
-
-    for (const category of uniqueCategories) {
-      let sumTotal = transactions.value.reduce((acc, obj) => {
-        return obj.category === category ? acc + obj.amount : acc;
-      }, 0);
-
-      sumTotal = Math.max(0, sumTotal);
-
-      if (sumTotal > 0) {
-        tempTotals[category!] = Number(sumTotal.toFixed(2));
-      }
+  if (!didSelectBank.value) {
+    return;
+  }
+  const response = await axios.get<Transaction[]>(
+    "api/Dashboard/transactions/" + selectedBank,
+    {
+      headers: {
+        Authorization: `Bearer ${authStre.token}`,
+      },
     }
+  );
 
+  transactions.value = response.data;
+
+  // Get all its unique categories and use an obj to store them as keys and values will be the sum of all the amounts spent in those categories:
+  const uniqueCategories = [
+    ...new Set(transactions.value.map((t) => t.category).filter((c) => !!c)),
+  ];
+
+  // console.log(uniqueCategories);
+
+  const tempTotals: CategorySum = {};
+
+  for (const category of uniqueCategories) {
+    let sumTotal = transactions.value.reduce((acc, obj) => {
+      return obj.category === category ? acc + obj.amount : acc;
+    }, 0);
+
+    sumTotal = Math.max(0, sumTotal);
+
+    if (sumTotal > 0) {
+      tempTotals[category!] = Number(sumTotal.toFixed(2));
+    }
     categoryTotals.value = tempTotals;
   }
+
+  const monthlySpendingResponse = await axios.get<MonthlySpending[]>(
+    "api/Dashboard/monthlySpendings/" + selectedBank,
+    {
+      headers: {
+        Authorization: `Bearer ${authStre.token}`,
+      },
+    }
+  );
+
+  monthlySpending.value = monthlySpendingResponse.data.filter(
+    (sp) => sp.categorySum.total > 0
+  );
+  //.slice(0,5);
+
+  console.log(monthlySpending.value);
 });
 
 // const transactions = ref([

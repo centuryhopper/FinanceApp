@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { ArcElement, Chart, Chart as ChartJS, Legend, Tooltip } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import { computed, onBeforeUnmount, ref, watch, watchEffect } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
