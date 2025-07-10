@@ -12,5 +12,5 @@ public class StreamlinedTransactionDTO
     public decimal Amount { get; set; }
     public DateOnly? Date { get; set; }
     // i.e. sandbox or production
-    public string EnvironmentType { get; set; }
+    public string? EnvironmentType { get; set; }
 }

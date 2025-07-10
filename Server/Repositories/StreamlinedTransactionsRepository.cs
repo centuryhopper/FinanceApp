@@ -91,7 +91,47 @@ public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbC
         return transactions;
     }
 
-    public EitherAsync<string, GeneralResponse> StoreTransactionsAsync(IEnumerable<StreamlinedTransactionDTO> dtos) => TryAsync(async () =>
+    public EitherAsync<GeneralResponse, GeneralResponse> EditTransactionAsync(StreamlinedTransactionDTO dto) => TryAsync(async () =>
+    {
+        var dbTransaction = await financeAppDbContext.Database.BeginTransactionAsync();
+
+        try
+        {
+            var transactionRecord = await financeAppDbContext.Streamlinedtransactions.FindAsync(dto.Id);
+            transactionRecord.Note = dto.Note;
+            await financeAppDbContext.SaveChangesAsync();
+
+            // get category list
+            var categories = await financeAppDbContext
+            .Categories
+            .AsNoTracking()
+            .ToListAsync();
+            // get the category record's id by finding it via the name
+            var newCategory = categories.FirstOrDefault(c => c.Name == dto.Category);
+            if (newCategory == null)
+            {
+                throw new Exception("newCategory not found");
+            }
+            // update the categoryid-transactionid in the junction table
+            await financeAppDbContext.Database.ExecuteSqlRawAsync(@"
+                UPDATE categorytransaction_junc
+                SET categoryid = {0}
+                WHERE streamlinedtransactionsid = {1}
+            ", newCategory.Categoryid, dto.Id);
+
+            await dbTransaction.CommitAsync();
+            return new GeneralResponse(true, "Transaction Updated!");
+        }
+        catch (System.Exception ex)
+        {
+            await dbTransaction.RollbackAsync();
+            // Re-throw the same exception
+            // ✅ preserves the original stack trace
+            throw;
+        }
+    }).ToEither(ex => new GeneralResponse(false, ex.Message));
+
+    public EitherAsync<GeneralResponse, GeneralResponse> StoreTransactionsAsync(IEnumerable<StreamlinedTransactionDTO> dtos) => TryAsync(async () =>
     {
         if (dtos is null)
         {
@@ -140,8 +180,10 @@ public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbC
         catch (Exception ex)
         {
             await dbTransaction.RollbackAsync();
+            // Re-throw the same exception
+            // ✅ preserves the original stack trace
             throw;
         }
 
-    }).ToEither(ex => ex.Message);
+    }).ToEither(ex => new GeneralResponse(false, ex.Message));
 }

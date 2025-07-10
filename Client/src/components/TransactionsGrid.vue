@@ -2,11 +2,16 @@
   <div class="m-5 container">
     <!-- Toggle Mode -->
     <button class="btn btn-primary mb-3" @click="toggleMode">
-      {{ mode === Mode.Readonly ? 'Edit' : 'View' }}
+      {{ mode === Mode.Readonly ? "Edit" : "View" }}
     </button>
 
     <!-- READONLY MODE -->
-    <DataTable v-if="mode === Mode.Readonly" :data="data" class="display" style="width: 100%">
+    <DataTable
+      v-if="mode === Mode.Readonly"
+      :data="readonlyData"
+      class="display"
+      style="width: 100%"
+    >
       <thead>
         <tr>
           <th>Date</th>
@@ -22,11 +27,17 @@
     <div v-else>
       <!-- Filter/Search Controls -->
       <div class="d-flex justify-content-between mb-3">
-        <input v-model="searchText" placeholder="Search..." class="form-control w-50 me-2" />
+        <input
+          v-model="searchText"
+          placeholder="Search..."
+          class="form-control w-50 me-2"
+        />
 
         <select v-model="categoryFilter" class="form-select w-25">
           <option value="">All Categories</option>
-          <option v-for="category in uniqueCategories" :key="category">{{ category }}</option>
+          <option v-for="category in uniqueCategories" :key="category">
+            {{ category }}
+          </option>
         </select>
       </div>
 
@@ -43,15 +54,28 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="(row, rowIndex) in paginatedData"
-            :key="rowIndex"
-          >
-            <td><input type="date" v-model="row[0]" class="form-control" /></td>
-            <td><input type="text" v-model="row[1]" class="form-control" /></td>
-            <td><input type="text" v-model="row[2]" class="form-control" /></td>
-            <td><input type="text" v-model="row[3]" class="form-control" /></td>
-            <td><input type="text" v-model="row[4]" class="form-control" /></td>
+          <tr v-for="(row, rowIndex) in paginatedData" :key="rowIndex">
+            <td>
+              <input type="date" v-model="row.date" class="form-control" readonly />
+            </td>
+            <td>
+              <input type="text" v-model="row.name" class="form-control" readonly />
+            </td>
+            <td>
+              <input type="text" v-model="row.amount" class="form-control" readonly />
+            </td>
+            <td>
+              <select v-model="row.category" class="form-select">
+                <option
+                  v-for="category in uniqueCategories"
+                  :key="category"
+                  :value="category"
+                >
+                  {{ category }}
+                </option>
+              </select>
+            </td>
+            <td><input type="text" v-model="row.note" class="form-control" /></td>
             <td>
               <button
                 class="btn btn-success btn-sm"
@@ -70,7 +94,10 @@
       <div class="d-flex justify-content-between align-items-center">
         <div>
           <label>Rows per page:</label>
-          <select v-model.number="rowsPerPage" class="form-select d-inline-block w-auto ms-2">
+          <select
+            v-model.number="rowsPerPage"
+            class="form-select d-inline-block w-auto ms-2"
+          >
             <option :value="5">5</option>
             <option :value="10">10</option>
             <option :value="15">15</option>
@@ -100,16 +127,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue';
-import DataTablesCore from 'datatables.net';
-import DataTable from 'datatables.net-vue3';
-import 'datatables.net-dt/css/dataTables.dataTables.css';
+import axios from "axios";
+import DataTablesCore from "datatables.net";
+import "datatables.net-dt/css/dataTables.dataTables.css";
+import DataTable from "datatables.net-vue3";
+import { computed, reactive, ref, watch } from "vue";
+import useSweetAlertPopups from "../composables/useSweetAlertPopups";
+import { authStore } from "../stores/auth";
+import type { Transaction } from "../types/Transactions";
 
 DataTable.use(DataTablesCore);
 
 enum Mode {
-  Readonly = 'readonly',
-  Edit = 'edit',
+  Readonly = "readonly",
+  Edit = "edit",
 }
 
 const mode = ref<Mode>(Mode.Readonly);
@@ -117,19 +148,36 @@ function toggleMode() {
   mode.value = mode.value === Mode.Readonly ? Mode.Edit : Mode.Readonly;
 }
 
-const data = reactive([
-  ['2023-11-14', 'Company Co.', '$2000', 'Salary', 'Monthly pay'],
-  ['2023-11-15', 'Netflix', '-$15', 'Subscription', 'Monthly sub'],
-  ['2023-11-16', 'Apple', '-$99', 'App Store', 'One-time app'],
-  ['2023-11-17', 'Spotify', '-$10', 'Entertainment', 'Music'],
-  ['2023-11-18', 'Upwork', '$520', 'Freelance', 'Side project'],
-  ['2023-11-19', 'Google', '$1800', 'Salary', 'Second payment'],
-  ['2023-11-20', 'YouTube Premium', '-$12', 'Subscription', 'Streaming'],
-]);
+const { showFeedbackPopup } = useSweetAlertPopups();
+
+const { transactions } = defineProps<{ transactions: Transaction[] }>();
+const editableData = reactive<{ items: Transaction[] }>({
+  items: [],
+});
+const authStre = authStore();
+const readonlyData = computed(() => {
+  // display the most recent dates first
+  const result = editableData.items
+    // .filter((t) => t.date !== undefined)
+    // .sort((a, b) => b.date!.localeCompare(a.date!))
+    .map((t) => [t.date, t.name, t.amount, t.category, t.note]);
+    // console.log(result);
+  return result;
+});
+
+watch(
+  () => transactions,
+  (newTransactions) => {
+    // update const data here
+    editableData.items = [...newTransactions];
+    // console.log(editableData.items);
+  },
+  { deep: true, immediate: true }
+);
 
 // Filters
-const searchText = ref('');
-const categoryFilter = ref('');
+const searchText = ref("");
+const categoryFilter = ref("");
 
 // Pagination
 const currentPage = ref(1);
@@ -137,15 +185,15 @@ const rowsPerPage = ref(5);
 
 // Filtered & Searched
 const filteredData = computed(() =>
-  data.filter((row) => {
+  editableData.items.filter((row) => {
     const matchesSearch =
-      searchText.value === '' ||
-      row.some((cell) =>
-        cell.toLowerCase?.().includes(searchText.value.toLowerCase())
+      searchText.value === "" ||
+      Object.values(row).some((cell) =>
+        cell.toString().toLowerCase?.().includes(searchText.value.toLowerCase())
       );
 
     const matchesCategory =
-      categoryFilter.value === '' || row[3] === categoryFilter.value;
+      categoryFilter.value === "" || row.category === categoryFilter.value;
 
     return matchesSearch && matchesCategory;
   })
@@ -158,13 +206,13 @@ const totalPages = computed(() =>
 
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * rowsPerPage.value;
-  return filteredData.value.slice(start, start + rowsPerPage.value);
+  return [...filteredData.value].slice(start, start + rowsPerPage.value);
 });
 
 // Extract unique categories
 const uniqueCategories = computed(() => {
   const set = new Set<string>();
-  data.forEach((row) => set.add(row[3]));
+  editableData.items.forEach((row) => set.add(row.category!));
   return [...set];
 });
 
@@ -172,25 +220,33 @@ const uniqueCategories = computed(() => {
 const savingRowIndex = ref<number | null>(null);
 
 // Get global row index from paginated row reference
-function getGlobalIndex(row: string[]): number {
-  return data.findIndex((r) => r === row);
+function getGlobalIndex(row: Transaction): number {
+  return editableData.items.findIndex((r) => r.id === row.id);
 }
 
 // Save row to "API"
-async function saveRow(row: string[], index: number) {
+async function saveRow(row: Transaction, index: number) {
   savingRowIndex.value = index;
   try {
-    console.log('Saving row to API:', row);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert(`Row ${index + 1} saved!`);
+    console.log("Saving row to API:", row);
+    const response = await axios.patch("api/Dashboard/editTransaction", row, {
+      headers: {
+        Authorization: `Bearer ${authStre.token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    console.log(response.data.message);
+    if (response.data.flag) {
+      showFeedbackPopup(true, response.data.message, "");
+    } else {
+      showFeedbackPopup(false, "", response.data.message);
+    }
   } catch (err) {
-    alert(`Failed to save row ${index + 1}`);
+    showFeedbackPopup(false, "", err as string);
   } finally {
     savingRowIndex.value = null;
   }
 }
-
-defineProps<{ transactions: Array<any> }>();
 </script>
 
 <style scoped>

@@ -61,7 +61,7 @@ watch(
         ...monthlySpending.map((obj) => obj.categorySum.total)
       );
 
-      console.log(datasets);
+      //console.log(datasets);
 
       chartInstance = new Chart(canvasRef.value, {
         type: "bar",
