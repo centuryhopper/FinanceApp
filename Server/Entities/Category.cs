@@ -9,5 +9,7 @@ public partial class Category
 
     public string? Name { get; set; }
 
+    public int? CategoryBudget { get; set; }
+
     public virtual ICollection<Streamlinedtransaction> Streamlinedtransactions { get; set; } = new List<Streamlinedtransaction>();
 }

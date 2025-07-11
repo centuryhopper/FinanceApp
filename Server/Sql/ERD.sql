@@ -78,3 +78,18 @@ CREATE TABLE IF NOT EXISTS CategoryTransaction_Junc
     FOREIGN KEY (CategoryId) REFERENCES Category(CategoryId),
     FOREIGN KEY (StreamLinedTransactionsId) REFERENCES StreamlinedTransactions(StreamLinedTransactionsId)
 );
+
+
+-- UPDATE category
+-- SET category_budget = CASE
+--     WHEN name ILIKE '%rent/mortgage%' THEN 1500
+--     WHEN name ILIKE '%Utilities%' THEN 500
+--     WHEN name ILIKE '%Groceries%' THEN 500
+--     WHEN name ILIKE '%Transportation%' THEN 100
+--     WHEN name ILIKE '%Insurance%' THEN 50
+--     WHEN name ILIKE '%Healthcare%' THEN 50
+--     WHEN name ILIKE '%phone/internet%' THEN 100
+--     WHEN name ILIKE '%entertainment%' THEN 300
+--     WHEN name ILIKE '%income%' THEN 3000
+--     ELSE 1000
+-- END;

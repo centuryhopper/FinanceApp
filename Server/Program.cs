@@ -102,7 +102,7 @@ builder
     });
 
 
-// To update FinanceAppDbContext, type dotnet ef dbcontext scaffold "connection string" Npgsql.EntityFrameworkCore.PostgreSQL -o Entities -c FinanceAppDbContext --context-dir Contexts -t plaiditems -t streamlinedtransactions -t users -t category -t categorytransaction_junc -t bankinfo
+// To update FinanceAppDbContext, type dotnet ef dbcontext scaffold "connection string" Npgsql.EntityFrameworkCore.PostgreSQL -o Entities -c FinanceAppDbContext --context-dir Contexts -t plaiditems -t streamlinedtransactions -t users -t category -t categorytransaction_junc -t bankinfo -f
 builder.Services.AddDbContext<FinanceAppDbContext>(options =>
 {
     options.UseNpgsql(
@@ -114,6 +114,7 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IPlaidItemRepository, PlaidItemRepository>();
 builder.Services.AddScoped<IBankRepository, BankRepository>();
 builder.Services.AddScoped<IStreamlinedTransactionsRepository, StreamlinedtransactionsRepository>();
+builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 
 
 if (!builder.Environment.IsDevelopment())

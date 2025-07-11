@@ -24,13 +24,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useTheme } from "../stores/theme-store";
 import Budgetsbar from "./Budgetsbar.vue";
 
 const { isDark } = useTheme();
 
-function updatebudgetLimit(id: number, newLimit: number) {
+const updatebudgetLimit = (id: number, newLimit: number) => {
   const item = budgetInfo.value.find((b) => b.id === id);
   if (item) item.budget = newLimit;
 
@@ -52,8 +52,11 @@ const monthNames = [
   "November",
   "December",
 ];
-
 const currentMonthString = monthNames[new Date().getMonth()];
+
+onMounted(() => {
+  
+});
 
 const budgetInfo = ref([
   {

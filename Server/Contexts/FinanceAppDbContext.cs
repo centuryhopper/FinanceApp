@@ -54,6 +54,7 @@ public partial class FinanceAppDbContext : DbContext
             entity.ToTable("category");
 
             entity.Property(e => e.Categoryid).HasColumnName("categoryid");
+            entity.Property(e => e.CategoryBudget).HasColumnName("category_budget");
             entity.Property(e => e.Name).HasColumnName("name");
 
             entity.HasMany(d => d.Streamlinedtransactions).WithMany(p => p.Categories)

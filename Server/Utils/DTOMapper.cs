@@ -75,6 +75,16 @@ public static class DTOMapper
         };
     }
 
+    public static CategoryDTO ToDTO(this Category obj)
+    {
+        return new()
+        {
+            Categoryid = obj.Categoryid,
+            Name = obj.Name,
+            CategoryBudget = obj.CategoryBudget,
+        };
+    }
+
     public static StreamlinedTransactionDTO ToDTO(this Streamlinedtransaction obj)
     {
         return new()
