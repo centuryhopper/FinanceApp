@@ -112,7 +112,6 @@ onMounted(async () => {
   );
   //.slice(0,5);
 
-  // console.log(monthlySpending.value);
 });
 
 </script>

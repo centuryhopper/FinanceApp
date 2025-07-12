@@ -80,6 +80,30 @@ CREATE TABLE IF NOT EXISTS CategoryTransaction_Junc
 );
 
 
+CREATE TABLE IF NOT EXISTS BudgetCaps
+(
+    CategoryBudget INT,
+    CategoryId INT,
+    BankInfoId INT,
+    UserId INT,
+    PRIMARY KEY (CategoryId, CategoryBudget, BankInfoId, UserId),
+    FOREIGN KEY (CategoryId) REFERENCES Category(CategoryId),
+    FOREIGN KEY (BankInfoId) REFERENCES BankInfo(BankInfo),
+    FOREIGN KEY (UserId) REFERENCES Users(ID)
+);
+
+CREATE TABLE IF NOT EXISTS BudgetCaps
+(
+    CategoryBudget INT,
+    CategoryId INT,
+    BankInfoId INT,
+    UserId INT,
+    PRIMARY KEY (CategoryId, CategoryBudget, BankInfoId, UserId),
+    FOREIGN KEY (CategoryId) REFERENCES Category(CategoryId),
+    FOREIGN KEY (BankInfoId) REFERENCES BankInfo(BankInfoId),
+    FOREIGN KEY (UserId) REFERENCES Users(ID)
+);
+
 -- UPDATE category
 -- SET category_budget = CASE
 --     WHEN name ILIKE '%rent/mortgage%' THEN 1500

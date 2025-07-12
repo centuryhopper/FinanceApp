@@ -7,15 +7,13 @@ import type { LoginModel, LoginPageProps } from "../types/LoginTypes";
 
 const { isDark } = useTheme();
 
-const { cooldownSeconds, maxAttempts, noticeText, redirectLink, onLogin } = withDefaults(
-  defineProps<LoginPageProps>(),
-  {
-    cooldownSeconds: 10,
-    maxAttempts: 5,
-    noticeText: "",
-    redirectLink: "/",
-  }
-);
+const {
+  cooldownSeconds = 10,
+  maxAttempts = 5,
+  noticeText = "",
+  redirectLink = "",
+  onLogin,
+} = defineProps<LoginPageProps>();
 
 const model = ref<LoginModel>({
   email: "",
@@ -39,24 +37,23 @@ const { secondsLeft, startTimer } = useCountDown({
     attemptsNotice.value = "";
   },
   onTick: () => {
-    console.log("tick called!");
     errMsg.value = `Too many attempts. Please wait ${secondsLeft.value} seconds before trying again.`;
   },
 });
 
-function togglePasswordVisibility() {
+const togglePasswordVisibility = () => {
   isPasswordVisible.value = !isPasswordVisible.value;
-}
+};
 
-function handleChange(event: Event) {
+const handleChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const { id, value, checked, type } = target;
   (model.value as any)[id] = type === "checkbox" ? checked : value;
 
   // console.log(model.value.email);
-}
+};
 
-async function handleSubmit() {
+const handleSubmit = async () => {
   if (isCoolingDown.value) return;
   loading.value = true;
   attempts.value++;
@@ -77,7 +74,7 @@ async function handleSubmit() {
   }
 
   router.push(redirectLink);
-}
+};
 </script>
 
 <template>

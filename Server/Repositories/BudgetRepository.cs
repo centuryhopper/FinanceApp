@@ -51,7 +51,7 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
             );
         }
 
-        var currentMonth = DateTime.Now.Month - 1;
+        var currentMonth = DateTime.Now.Month;
         var currentYear = DateTime.Now.Year;
 
         var spendingByCategory = await financeAppDbContext.Streamlinedtransactions
@@ -62,6 +62,7 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
             .Include(t => t.Categories)
             .SelectMany(t => t.Categories.Select(c => new
             {
+                CategoryId = c.Categoryid,
                 CategoryName = c.Name,
                 Amount = t.Amount ?? 0,
                 BudgetCap = c.CategoryBudget,
@@ -70,12 +71,14 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
             .Where(t => t.BudgetCap.HasValue)
             .GroupBy(t => new
             {
+                t.CategoryId,
                 t.CategoryName,
                 t.Id,
                 t.BudgetCap,
             })
             .Select(g => new CurrentMonthSpendingByCategoryDTO
             {
+                CategoryId = g.Key.CategoryId,
                 Category = g.Key.CategoryName!,
                 Id = g.Key.Id,
                 BudgetCap = g.Key.BudgetCap.Value,
@@ -84,11 +87,37 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
             .Where(o => o.Spent > 0)
             .ToListAsync();
 
+        var categories = await financeAppDbContext
+        .Categories
+        .Select(c => c.ToDTO())
+        .AsNoTracking()
+        .ToListAsync();
+
+        foreach (var category in categories)
+        {
+            if (spendingByCategory.FirstOrDefault(s => s.CategoryId == category.Categoryid) == null)
+            {
+                spendingByCategory.Add(new()
+                {
+                    CategoryId = category.Categoryid,
+                    Category = category.Name!,
+                    Id = 0,
+                    BudgetCap = category.CategoryBudget!.Value,
+                    Spent = 0,
+                });
+            }
+        }
+
+        for (int i = 0; i < spendingByCategory.Count; i++)
+        {
+            spendingByCategory[i].Id = i;
+        }
+
         return new GeneralResponseWithPayload<LstOfSpendings>(
-            true,
-            "Success",
-            spendingByCategory
-        );
+                    true,
+                    "Success",
+                    spendingByCategory
+                );
     }
 
 

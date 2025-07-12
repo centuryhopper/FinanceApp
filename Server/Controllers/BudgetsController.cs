@@ -6,6 +6,8 @@ using Server.Models;
 using Server.Repositories;
 using Server.Utils;
 
+// TODO: remove categorybudget column from category table and re scaffold to app
+
 namespace Server.Controllers
 {
     [Route("api/[controller]")]
@@ -29,7 +31,19 @@ namespace Server.Controllers
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "1");
             var spendings = await budgetRepository.GetCurrentMonthSpendingByCategoryAsync(institutionName, userId);
 
-            return Ok(spendings);
+            if (!spendings.Flag)
+            {
+                return BadRequest(new
+                {
+                    ErrorMessage = "No spendings found"
+                });
+            }
+
+
+            return Ok(new
+            {
+                spendings.Payload,
+            });
         }
 
 
