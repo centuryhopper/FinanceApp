@@ -29,7 +29,7 @@ namespace Server.Controllers
         public async Task<IActionResult> GetCurrentMonthSpendingByCategoryAsync(string institutionName)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "1");
-            var spendings = await budgetRepository.GetCurrentMonthSpendingByCategoryAsync(institutionName, userId);
+            var spendings = await budgetRepository.GetCurrentMonthSpendingByCategoriesAsync(institutionName, userId);
 
             if (!spendings.Flag)
             {

@@ -25,6 +25,8 @@ public partial class User
 
     public virtual ICollection<Bankinfo> Bankinfos { get; set; } = new List<Bankinfo>();
 
+    public virtual ICollection<Budgetcap> Budgetcaps { get; set; } = new List<Budgetcap>();
+
     public virtual ICollection<Plaiditem> Plaiditems { get; set; } = new List<Plaiditem>();
 
     public virtual ICollection<Streamlinedtransaction> Streamlinedtransactions { get; set; } = new List<Streamlinedtransaction>();

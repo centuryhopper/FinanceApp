@@ -18,6 +18,8 @@ public partial class FinanceAppDbContext : DbContext
 
     public virtual DbSet<Bankinfo> Bankinfos { get; set; }
 
+    public virtual DbSet<Budgetcap> Budgetcaps { get; set; }
+
     public virtual DbSet<Category> Categories { get; set; }
 
     public virtual DbSet<Plaiditem> Plaiditems { get; set; }
@@ -47,6 +49,33 @@ public partial class FinanceAppDbContext : DbContext
                 .HasConstraintName("bankinfo_userid_fkey");
         });
 
+        modelBuilder.Entity<Budgetcap>(entity =>
+        {
+            entity.HasKey(e => new { e.Categoryid, e.Categorybudget, e.Bankinfoid, e.Userid }).HasName("budgetcaps_pkey");
+
+            entity.ToTable("budgetcaps");
+
+            entity.Property(e => e.Categoryid).HasColumnName("categoryid");
+            entity.Property(e => e.Categorybudget).HasColumnName("categorybudget");
+            entity.Property(e => e.Bankinfoid).HasColumnName("bankinfoid");
+            entity.Property(e => e.Userid).HasColumnName("userid");
+
+            entity.HasOne(d => d.Bankinfo).WithMany(p => p.Budgetcaps)
+                .HasForeignKey(d => d.Bankinfoid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("budgetcaps_bankinfoid_fkey");
+
+            entity.HasOne(d => d.Category).WithMany(p => p.Budgetcaps)
+                .HasForeignKey(d => d.Categoryid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("budgetcaps_categoryid_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Budgetcaps)
+                .HasForeignKey(d => d.Userid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("budgetcaps_userid_fkey");
+        });
+
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasKey(e => e.Categoryid).HasName("category_pkey");
@@ -54,7 +83,6 @@ public partial class FinanceAppDbContext : DbContext
             entity.ToTable("category");
 
             entity.Property(e => e.Categoryid).HasColumnName("categoryid");
-            entity.Property(e => e.CategoryBudget).HasColumnName("category_budget");
             entity.Property(e => e.Name).HasColumnName("name");
 
             entity.HasMany(d => d.Streamlinedtransactions).WithMany(p => p.Categories)

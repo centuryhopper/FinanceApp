@@ -13,6 +13,8 @@ public partial class Bankinfo
 
     public decimal Totalbankbalance { get; set; }
 
+    public virtual ICollection<Budgetcap> Budgetcaps { get; set; } = new List<Budgetcap>();
+
     public virtual ICollection<Streamlinedtransaction> Streamlinedtransactions { get; set; } = new List<Streamlinedtransaction>();
 
     public virtual User? User { get; set; }

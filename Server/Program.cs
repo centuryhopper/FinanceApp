@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Server.JsonConverters;
 
 
-/*
+/* 
 TODO: create the streamlinedtransactions table to include these fields only DONE
 TODO: Perhaps have a categories table (categoryid, category name) and a categories and transactions junction table (transactionid categoryid) DONE
 TODO: create an api call that syncs the latest transactions with your application DONE
@@ -102,7 +102,7 @@ builder
     });
 
 
-// To update FinanceAppDbContext, type dotnet ef dbcontext scaffold "connection string" Npgsql.EntityFrameworkCore.PostgreSQL -o Entities -c FinanceAppDbContext --context-dir Contexts -t plaiditems -t streamlinedtransactions -t users -t category -t categorytransaction_junc -t bankinfo -f
+// To update FinanceAppDbContext, type dotnet ef dbcontext scaffold "connection string" Npgsql.EntityFrameworkCore.PostgreSQL -o Entities -c FinanceAppDbContext --context-dir Contexts -t plaiditems -t streamlinedtransactions -t users -t category -t categorytransaction_junc -t bankinfo -t budgetcaps -f
 builder.Services.AddDbContext<FinanceAppDbContext>(options =>
 {
     options.UseNpgsql(
