@@ -178,11 +178,11 @@ onMounted(async () => {
       return;
     }
 
-    const firstInstitution = banks.value[0].bankname;
-    sessionStorage.setItem("selectedBank", firstInstitution);
+    const firstInstitutionId = banks.value[0].bankinfoid;
+    sessionStorage.setItem("selectedBank", firstInstitutionId.toString());
 
     const transactionsResponse = await axios.get<Transaction[]>(
-      "api/Bank/recent-transactions/" + firstInstitution,
+      "api/Bank/recent-transactions/" + firstInstitutionId,
       {
         headers: {
           Authorization: `Bearer ${authStre.token}`,

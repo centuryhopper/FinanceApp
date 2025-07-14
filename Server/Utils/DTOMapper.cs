@@ -81,7 +81,6 @@ public static class DTOMapper
         {
             Categoryid = obj.Categoryid,
             Name = obj.Name,
-            CategoryBudget = obj.CategoryBudget,
         };
     }
 

@@ -13,11 +13,11 @@ namespace Server.Controllers
     public class DashboardController(
         IStreamlinedTransactionsRepository streamlinedTransactionsRepository) : ControllerBase
     {
-        [HttpGet("transactions/{institutionName}")]
-        public async Task<IActionResult> GetTransactionsAsync(string institutionName)
+        [HttpGet("transactions/{bankInfoId:int}")]
+        public async Task<IActionResult> GetTransactionsAsync(int bankInfoId)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-            var transactions = await streamlinedTransactionsRepository.GetTransactionsAsync(institutionName, userId, null);
+            var transactions = await streamlinedTransactionsRepository.GetTransactionsAsync(bankInfoId, userId, null);
             return Ok(transactions);
         }
 
@@ -33,11 +33,11 @@ namespace Server.Controllers
 
         // http://localhost:5003/api/Dashboard/monthlySpendings/Tartan Bank
         // [AllowAnonymous]
-        [HttpGet("monthlySpendings/{institutionName}")]
-        public async Task<IActionResult> GetMonthlySpendingsAsync(string institutionName)
+        [HttpGet("monthlySpendings/{bankInfoId:int}")]
+        public async Task<IActionResult> GetMonthlySpendingsAsync(int bankInfoId)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "1");
-            var monthlySpendings = await streamlinedTransactionsRepository.GetMonthlySpendingsAsync(institutionName, userId);
+            var monthlySpendings = await streamlinedTransactionsRepository.GetMonthlySpendingsAsync(bankInfoId, userId);
             return Ok(monthlySpendings);
         }
     }

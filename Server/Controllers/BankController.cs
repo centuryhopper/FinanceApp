@@ -37,11 +37,11 @@ namespace Server.Controllers
             return Ok(bankInfos);
         }
 
-        [HttpGet("recent-transactions/{institutionName}")]
-        public async Task<IActionResult> GetTransactionsAsync(string institutionName)
+        [HttpGet("recent-transactions/{bankInfoId:int}")]
+        public async Task<IActionResult> GetTransactionsAsync(int bankInfoId)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-            var transactions = await streamlinedTransactionsRepository.GetTransactionsAsync(institutionName, userId, 5);
+            var transactions = await streamlinedTransactionsRepository.GetTransactionsAsync(bankInfoId, userId, 5);
             return Ok(transactions);
         }
 

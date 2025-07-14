@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 using LstOfSpendings = System.Collections.Generic.IEnumerable<Server.Models.CurrentMonthSpendingByCategoryDTO>;
 using Server.Entities;
+using Newtonsoft.Json;
 
 namespace Server.Repositories;
 
@@ -62,10 +63,21 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
 
     }).ToEither(res => new GeneralResponse(false, res.Message));
 
-    public EitherAsync<GeneralResponse, GeneralResponse> EditBudgetCap(int userId, int bankInfoId, int categoryId)
+    public EitherAsync<GeneralResponse, GeneralResponse> EditBudgetCap(BudgetCapDTO dto) => TryAsync(async () =>
     {
-        throw new NotImplementedException();
-    }
+        var record = await financeAppDbContext.Budgetcaps.FirstOrDefaultAsync(bc => bc.Bankinfoid == dto.Bankinfoid && bc.Categoryid == dto.Categoryid && bc.Userid == dto.Userid);
+
+        if (record is null)
+        {
+            throw new Exception("Budget cap record not found.");
+        }
+
+        record.Categorybudget = dto.Categorybudget;
+        await financeAppDbContext.SaveChangesAsync();
+
+        return new GeneralResponse(true, "Budget cap record updated!");
+
+    }).ToEither(ex => new GeneralResponse(false, ex.Message));
 
     /*
         query to see all total amounts by category:
@@ -157,63 +169,42 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
         var currentMonth = DateTime.Now.Month;
         var currentYear = DateTime.Now.Year;
 
-
-        /*
-        
-            with grouped as (
-            SELECT 
-            c.name AS category,
-            c.categoryid categoryid,
-            bc.categorybudget categorybudget,
-            sum(st.amount) AS spent
-            FROM (
-                select * from streamlinedtransactions st1
-                where st1.userid = 1 
-                AND st1.bankinfoid = 2 
-                AND EXTRACT(MONTH FROM st1.date) = 7
-                AND EXTRACT(YEAR FROM st1.date) = 2025
-            ) AS st
-            JOIN categorytransaction_junc cj on cj.streamlinedtransactionsid = st.streamlinedtransactionsid
-            RIGHT JOIN category c ON c.categoryid = cj.categoryid
-            RIGHT OUTER JOIN budgetcaps bc ON bc.categoryid = c.categoryid 
-                AND bc.userid = st.userid 
-                AND bc.bankinfoid = st.bankinfoid
-            WHERE st.amount > 0
-            GROUP BY category, c.categoryid, categorybudget
-        )
-        select ROW_NUMBER() OVER() - 1 AS id,
-        COALESCE(category, c.name) category,
-        COALESCE(grouped.categoryid, c.categoryid) categoryid,
-        COALESCE(spent, 0) spent,
-        bc.categorybudget
-        FROM grouped
-        -- include everything from these two tables even if there's no intersection with the aggregated table
-        RIGHT JOIN category c on c.categoryid = grouped.categoryid
-        RIGHT JOIN budgetcaps bc on bc.categoryid = c.categoryid
-
-        */
-
-
-        var categories = await financeAppDbContext
-        .Categories
-        .Select(c => c.ToDTO())
-        .AsNoTracking()
-        .ToListAsync();
-
-        foreach (var category in categories)
-        {
-            if (spendingByCategories.FirstOrDefault(s => s.CategoryId == category.Categoryid) == null)
-            {
-                spendingByCategories.Add(new()
-                {
-                    Id = 0,
-                    CategoryId = category.Categoryid,
-                    Category = category.Name!,
-                    BudgetCap = category.CategoryBudget!.Value,
-                    Spent = 0,
-                });
-            }
-        }
+        var spendingByCategories = await financeAppDbContext.Database.SqlQueryRaw<CurrentMonthSpendingByCategoryDTO>(@"
+                WITH grouped AS (
+                    SELECT 
+                    c.name AS category,
+                    c.categoryid categoryid,
+                    bc.categorybudget budgetcap,
+                    SUM(st.amount) AS spent
+                    FROM (
+                        SELECT * FROM streamlinedtransactions st1
+                        WHERE st1.userid = {0}
+                        AND st1.bankinfoid = {1}
+                        AND EXTRACT(MONTH FROM st1.date) = {2}
+                        AND EXTRACT(YEAR FROM st1.date) = {3}
+                    ) AS st
+                    JOIN categorytransaction_junc cj on cj.streamlinedtransactionsid = st.streamlinedtransactionsid
+                    RIGHT JOIN category c ON c.categoryid = cj.categoryid
+                    RIGHT OUTER JOIN budgetcaps bc ON bc.categoryid = c.categoryid 
+                        AND bc.userid = st.userid 
+                        AND bc.bankinfoid = st.bankinfoid
+                    WHERE st.amount > 0
+                    GROUP BY category, c.categoryid, categorybudget
+                )
+                select ROW_NUMBER() OVER() - 1 AS Id,
+                COALESCE(category, c.name) Category,
+                COALESCE(grouped.categoryid, c.categoryid) CategoryId,
+                COALESCE(spent, 0) Spent,
+                bc.categorybudget BudgetCap
+                FROM grouped
+                -- include everything from these two tables even if there's no intersection with the aggregated table
+                RIGHT JOIN category c on c.categoryid = grouped.categoryid
+                RIGHT JOIN budgetcaps bc on bc.categoryid = c.categoryid
+        ",
+        userId,
+        bankInfoId,
+        currentMonth,
+        currentYear).ToListAsync();
 
         return new GeneralResponseWithPayload<LstOfSpendings>(
             true,

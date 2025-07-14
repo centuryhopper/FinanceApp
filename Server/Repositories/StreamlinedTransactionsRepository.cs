@@ -12,16 +12,15 @@ using Server.Entities;
 
 namespace Server.Repositories;
 
-
 public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbContext) : IStreamlinedTransactionsRepository
 {
-    public async Task<IEnumerable<MonthlySpendingDTO>> GetMonthlySpendingsAsync(string institutionName, int userId)
+    public async Task<IEnumerable<MonthlySpendingDTO>> GetMonthlySpendingsAsync(int bankInfoId, int userId)
     {
-        var bankInfo = await financeAppDbContext.Bankinfos.FirstOrDefaultAsync(b => b.Bankname == institutionName && b.Userid == userId);
+        var bankInfo = await financeAppDbContext.Bankinfos.FirstOrDefaultAsync(b => b.Bankinfoid == bankInfoId && b.Userid == userId);
 
         if (bankInfo == null)
         {
-            throw new Exception($"Bank info for institution '{institutionName}' and user ID '{userId}' not found.");
+            throw new Exception($"Bank info for institution '{bankInfoId}' and user ID '{userId}' not found.");
         }
 
         var result = await financeAppDbContext.Streamlinedtransactions
@@ -66,13 +65,13 @@ public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbC
         return finalResult;
     }
 
-    public async Task<IEnumerable<StreamlinedTransactionDTO>> GetTransactionsAsync(string institutionName, int userId, int? numTransactions)
+    public async Task<IEnumerable<StreamlinedTransactionDTO>> GetTransactionsAsync(int bankInfoId, int userId, int? numTransactions)
     {
-        var bankInfo = await financeAppDbContext.Bankinfos.FirstOrDefaultAsync(b => b.Bankname == institutionName && b.Userid == userId);
+        var bankInfo = await financeAppDbContext.Bankinfos.FirstOrDefaultAsync(b => b.Bankinfoid == bankInfoId && b.Userid == userId);
 
         if (bankInfo == null)
         {
-            throw new Exception($"Bank info for institution '{institutionName}' and user ID '{userId}' not found.");
+            throw new Exception($"Bank info for institution '{bankInfoId}' and user ID '{userId}' not found.");
         }
 
         IQueryable<Streamlinedtransaction> query = financeAppDbContext.Streamlinedtransactions

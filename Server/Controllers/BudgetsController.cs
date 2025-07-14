@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Server.Models;
 using Server.Repositories;
 using Server.Utils;
@@ -25,11 +26,11 @@ namespace Server.Controllers
         }
 
         // http://localhost:5003/api/Budgets/current-month-spending-by-category/Tartan Bank
-        [HttpGet("current-month-spending-by-category/{institutionName}")]
-        public async Task<IActionResult> GetCurrentMonthSpendingByCategoryAsync(string institutionName)
+        [HttpGet("current-month-spending-by-category/{bankInfoId:int}")]
+        public async Task<IActionResult> GetCurrentMonthSpendingByCategoryAsync(int bankInfoId)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "1");
-            var spendings = await budgetRepository.GetCurrentMonthSpendingByCategoriesAsync(institutionName, userId);
+            var spendings = await budgetRepository.GetCurrentMonthSpendingByCategoriesAsync(bankInfoId, userId);
 
             if (!spendings.Flag)
             {
@@ -40,10 +41,7 @@ namespace Server.Controllers
             }
 
 
-            return Ok(new
-            {
-                spendings.Payload,
-            });
+            return Ok(JsonConvert.SerializeObject(spendings.Payload, Formatting.Indented));
         }
 
 
