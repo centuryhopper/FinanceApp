@@ -118,7 +118,7 @@ onMounted(async () => {
     }
   );
 
-  console.log(initBudgetsResponse.data);
+  // console.log("initBudgetsResponse.data", initBudgetsResponse.data);
 
   if (initBudgetsResponse.status !== 200) {
     console.log("couldn't initialize budgets properly");

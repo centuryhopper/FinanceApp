@@ -9,7 +9,6 @@ namespace Server.Repositories;
 
 public interface IBudgetRepository
 {
-    Task<IEnumerable<CategoryDTO>> GetCategoriesAsync();
     EitherAsync<GeneralResponse, GeneralResponse> InitializeBudgetCaps(int userId, int bankInfoId);
     EitherAsync<GeneralResponse, GeneralResponse> EditBudgetCap(BudgetCapDTO dto);
     EitherAsync<GeneralResponseWithPayload<LstOfSpendings>, GeneralResponseWithPayload<LstOfSpendings>> GetCurrentMonthSpendingByCategoriesAsync(int bankInfoId, int userId);

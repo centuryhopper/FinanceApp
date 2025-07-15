@@ -12,34 +12,26 @@ namespace Server.Repositories;
 
 public class BankRepository(FinanceAppDbContext financeAppDbContext) : IBankRepository
 {
-    public async Task<GeneralResponseWithPayload<BankInfoDTO?>> GetBankInfoAsync(string institutionName, int userId)
+    public EitherAsync<GeneralResponseWithPayload<BankInfoDTO?>, GeneralResponseWithPayload<BankInfoDTO>> GetBankInfoAsync(string institutionName, int userId) => TryAsync(async () =>
     {
-        try
+        var bankInfo = await financeAppDbContext.Bankinfos.FirstOrDefaultAsync(b => b.Userid == userId && b.Bankname == institutionName);
+        if (bankInfo == null)
         {
-            var bankInfo = await financeAppDbContext.Bankinfos.FirstOrDefaultAsync(b => b.Userid == userId && b.Bankname == institutionName);
-
-            return new GeneralResponseWithPayload<BankInfoDTO?>(true, "success", bankInfo.ToDTO());
-
+            throw new Exception("bank info not found");
         }
-        catch (System.Exception ex)
-        {
-            return new GeneralResponseWithPayload<BankInfoDTO?>(false, ex.Message, null);
-        }
-    }
 
-    public async Task<GeneralResponse> StoreBankInfoAsync(BankInfoDTO bankInfo)
+        return new GeneralResponseWithPayload<BankInfoDTO>(true, "success", bankInfo.ToDTO());
+
+    }).ToEither(ex => new GeneralResponseWithPayload<BankInfoDTO?>(false, ex.Message, null));
+
+    public EitherAsync<GeneralResponseWithPayload<BankInfoDTO?>, GeneralResponseWithPayload<BankInfoDTO>> StoreBankInfoAsync(BankInfoDTO bankInfo) => TryAsync(async () =>
     {
-        try
-        {
-            await financeAppDbContext.Bankinfos.AddAsync(bankInfo.ToEntity());
-            await financeAppDbContext.SaveChangesAsync();
+        var bankEntity = bankInfo.ToEntity();
+        await financeAppDbContext.Bankinfos.AddAsync(bankEntity);
+        await financeAppDbContext.SaveChangesAsync();
 
-            return new GeneralResponse(true, "Bank info stored successfully.");
-        }
-        catch (System.Exception ex)
-        {
-            return new GeneralResponse(false, ex.Message);
-        }
-    }
+        return new GeneralResponseWithPayload<BankInfoDTO>(true, "Bank info stored successfully.", bankEntity.ToDTO());
+    }).ToEither(ex => new GeneralResponseWithPayload<BankInfoDTO?>(false, ex.Message, null));
+
 }
 

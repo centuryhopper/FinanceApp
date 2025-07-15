@@ -11,7 +11,7 @@ const {
   cooldownSeconds = 10,
   maxAttempts = 5,
   noticeText = "",
-  redirectLink = "",
+  redirectLink = "/",
   onLogin,
 } = defineProps<LoginPageProps>();
 
@@ -72,6 +72,8 @@ const handleSubmit = async () => {
     }
     return;
   }
+
+  // console.log('redirecting to', redirectLink);
 
   router.push(redirectLink);
 };

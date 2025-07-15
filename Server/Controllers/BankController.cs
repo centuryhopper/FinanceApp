@@ -30,7 +30,13 @@ namespace Server.Controllers
                 {
                     continue;
                 }
-                var bank = await bankRepository.GetBankInfoAsync(plaidItem.Institutionname, userId);
+                var bank = await bankRepository.GetBankInfoAsync(plaidItem.Institutionname, userId).Match(Left: res => res, Right: res => res);
+
+                if (!bank.Flag)
+                {
+                    continue;
+                }
+
                 bankInfos.Add(bank.Payload);
             }
 
@@ -45,6 +51,6 @@ namespace Server.Controllers
             return Ok(transactions);
         }
 
-        
+
     }
 }

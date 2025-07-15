@@ -7,7 +7,6 @@ using Server.Models;
 using Server.Repositories;
 using Server.Utils;
 
-// TODO: remove categorybudget column from category table and re scaffold to app
 
 namespace Server.Controllers
 {
@@ -18,12 +17,6 @@ namespace Server.Controllers
         IBudgetRepository budgetRepository
         ) : ControllerBase
     {
-        [HttpGet("category-budgets")]
-        public async Task<IActionResult> GetCategoryBudgetsAsync()
-        {
-            var categories = await budgetRepository.GetCategoriesAsync();
-            return Ok(categories);
-        }
 
         [HttpGet("init-budgets/{bankInfoId:int}")]
         public async Task<IActionResult> InitBudgetsAsync(int bankInfoId)
@@ -36,7 +29,6 @@ namespace Server.Controllers
             );
         }
 
-        // http://localhost:5003/api/Budgets/current-month-spending-by-category/Tartan Bank
         [HttpGet("current-month-spending-by-category/{bankInfoId:int}")]
         public async Task<IActionResult> GetCurrentMonthSpendingByCategoryAsync(int bankInfoId)
         {

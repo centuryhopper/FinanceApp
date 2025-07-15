@@ -101,6 +101,33 @@ public class PlaidController : ControllerBase
             {
                 var transactionSyncResponse = await plaidService.GetAllTransactionsSyncAsync(exchangedResponse.AccessToken, null);
 
+                var bankInfoSum = authInfo.Accounts.Sum(acc => acc.Balances.Current.Value);
+
+                var bankInfo = new BankInfoDTO
+                {
+                    Userid = userId,
+                    Bankname = authInfo.Item.InstitutionName,
+                    Totalbankbalance = bankInfoSum,
+                };
+
+                // Insert bank info into the database
+                var storeBankInfoResponse = await bankRepository.StoreBankInfoAsync(bankInfo).Match(Left: res => res, Right: res => res);
+
+                if (!storeBankInfoResponse.Flag)
+                {
+                    return BadRequest(new
+                    {
+                        ErrorMessage = "Couldn't add bank to BankInfo database",
+                    });
+                }
+
+                transactionSyncResponse.StreamlinedTransactionDTOs = transactionSyncResponse.StreamlinedTransactionDTOs.Select(st =>
+                {
+                    st.BankInfoId = storeBankInfoResponse.Payload.Bankinfoid;
+                    st.EnvironmentType = configProvider.PlaidEnvironment;
+                    return st;
+                }).ToList();
+
                 // Store the list of queried transactions in streamlinedtransaction table
                 var storeTransactionsResponse = await streamlinedTransactionsRepository.StoreTransactionsAsync(transactionSyncResponse.StreamlinedTransactionDTOs);
 
@@ -117,17 +144,7 @@ public class PlaidController : ControllerBase
                     Right: _ => _
                 );
 
-                var bankInfoSum = authInfo.Accounts.Sum(acc => acc.Balances.Current.Value);
 
-                var bankInfo = new BankInfoDTO
-                {
-                    Userid = userId,
-                    Bankname = authInfo.Item.InstitutionName,
-                    Totalbankbalance = bankInfoSum,
-                };
-
-                // Insert bank info into the database
-                var storeBankInfoResponse = await bankRepository.StoreBankInfoAsync(bankInfo);
 
                 return Ok(new
                 {

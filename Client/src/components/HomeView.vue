@@ -181,6 +181,7 @@ onMounted(async () => {
     banksLoaded.value = true;
 
     if (banks.value.length === 0) {
+      transactionsLoaded.value = true;
       return;
     }
 
@@ -198,6 +199,9 @@ onMounted(async () => {
 
     recentTransactions.value = transactionsResponse.data;
     transactionsLoaded.value = true;
+
+    // console.log(recentTransactions);
+    // console.log(transactionsLoaded);
   } catch (e) {
     console.error("Error fetching banks:", e);
     await showFeedbackPopup(false, "", "Please try again later.");

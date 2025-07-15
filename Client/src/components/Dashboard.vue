@@ -60,7 +60,7 @@ const readonlyCategoryTotals = computed(() => categoryTotals.value ?? {});
 
 const monthlySpending = ref<MonthlySpending[]>([]);
 const readonlyMonthlySpending = computed(() => monthlySpending.value ?? []);
-
+// TODO: make sure the numbering isn't off for the horizontal stacked chart
 onMounted(async () => {
   if (!didSelectBank.value) {
     return;

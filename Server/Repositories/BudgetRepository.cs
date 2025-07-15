@@ -15,17 +15,6 @@ namespace Server.Repositories;
 
 public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudgetRepository
 {
-    public async Task<IEnumerable<CategoryDTO>> GetCategoriesAsync()
-    {
-        var categories = await financeAppDbContext
-            .Categories
-            .Select(c => c.ToDTO())
-            .AsNoTracking()
-            .ToListAsync();
-
-        return categories;
-    }
-
     public EitherAsync<GeneralResponse, GeneralResponse> InitializeBudgetCaps(int userId, int bankInfoId) => TryAsync(async () =>
     {
         var dbTransaction = await financeAppDbContext.Database.BeginTransactionAsync();
@@ -52,6 +41,7 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
                         Bankinfoid = bankInfoId,
                         Userid = userId,
                     });
+                    await financeAppDbContext.SaveChangesAsync();
                 }
             }
 
@@ -199,13 +189,15 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
                 FROM grouped
                 -- include everything from these two tables even if there's no intersection with the aggregated table
                 RIGHT JOIN category c on c.categoryid = grouped.categoryid
-                RIGHT JOIN budgetcaps bc on bc.categoryid = c.categoryid
+                INNER JOIN budgetcaps bc on bc.categoryid = c.categoryid and bc.bankinfoid = {4} and bc.userid = {5}
                 ORDER BY CategoryId
         ",
         userId,
         bankInfoId,
         currentMonth,
-        currentYear)
+        currentYear,
+        bankInfoId,
+        userId)
         .ToListAsync();
 
         return new GeneralResponseWithPayload<LstOfSpendings>(

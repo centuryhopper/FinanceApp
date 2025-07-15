@@ -13,4 +13,6 @@ public class StreamlinedTransactionDTO
     public DateOnly? Date { get; set; }
     // i.e. sandbox or production
     public string? EnvironmentType { get; set; }
+    public int? BankInfoId { get; set; }
+
 }
