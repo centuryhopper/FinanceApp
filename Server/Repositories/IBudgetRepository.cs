@@ -9,8 +9,8 @@ namespace Server.Repositories;
 
 public interface IBudgetRepository
 {
-    EitherAsync<GeneralResponse, GeneralResponse> InitializeBudgetCaps(int userId, int bankInfoId, int categoryId);
-    EitherAsync<GeneralResponse, GeneralResponse> EditBudgetCap(BudgetCapDTO dto);
     Task<IEnumerable<CategoryDTO>> GetCategoriesAsync();
-    Task<GeneralResponseWithPayload<LstOfSpendings>> GetCurrentMonthSpendingByCategoriesAsync(int bankInfoId, int userId);
+    EitherAsync<GeneralResponse, GeneralResponse> InitializeBudgetCaps(int userId, int bankInfoId);
+    EitherAsync<GeneralResponse, GeneralResponse> EditBudgetCap(BudgetCapDTO dto);
+    EitherAsync<GeneralResponseWithPayload<LstOfSpendings>, GeneralResponseWithPayload<LstOfSpendings>> GetCurrentMonthSpendingByCategoriesAsync(int bankInfoId, int userId);
 }

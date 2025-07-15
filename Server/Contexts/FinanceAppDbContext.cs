@@ -51,7 +51,7 @@ public partial class FinanceAppDbContext : DbContext
 
         modelBuilder.Entity<Budgetcap>(entity =>
         {
-            entity.HasKey(e => new { e.Categoryid, e.Categorybudget, e.Bankinfoid, e.Userid }).HasName("budgetcaps_pkey");
+            entity.HasKey(e => new { e.Categoryid, e.Bankinfoid, e.Userid }).HasName("budgetcaps_pkey");
 
             entity.ToTable("budgetcaps");
 

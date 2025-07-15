@@ -36,7 +36,8 @@ namespace Server.Controllers
         [HttpGet("monthlySpendings/{bankInfoId:int}")]
         public async Task<IActionResult> GetMonthlySpendingsAsync(int bankInfoId)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "1");
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+
             var monthlySpendings = await streamlinedTransactionsRepository.GetMonthlySpendingsAsync(bankInfoId, userId);
             return Ok(monthlySpendings);
         }

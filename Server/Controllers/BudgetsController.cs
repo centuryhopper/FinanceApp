@@ -25,26 +25,53 @@ namespace Server.Controllers
             return Ok(categories);
         }
 
+        [HttpGet("init-budgets/{bankInfoId:int}")]
+        public async Task<IActionResult> InitBudgetsAsync(int bankInfoId)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+
+            return (await budgetRepository.InitializeBudgetCaps(userId, bankInfoId)).Match<IActionResult>(
+                Left: res => BadRequest(res),
+                Right: res => Ok(res)
+            );
+        }
+
         // http://localhost:5003/api/Budgets/current-month-spending-by-category/Tartan Bank
         [HttpGet("current-month-spending-by-category/{bankInfoId:int}")]
         public async Task<IActionResult> GetCurrentMonthSpendingByCategoryAsync(int bankInfoId)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "1");
-            var spendings = await budgetRepository.GetCurrentMonthSpendingByCategoriesAsync(bankInfoId, userId);
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
-            if (!spendings.Flag)
-            {
-                return BadRequest(new
+            return (await budgetRepository.GetCurrentMonthSpendingByCategoriesAsync(bankInfoId, userId)).Match<IActionResult>(
+                Left: res => BadRequest(new
                 {
-                    ErrorMessage = "No spendings found"
-                });
-            }
+                    ErrorMessage = res.Message,
+                }),
+                Right: res => Ok(new
+                {
+                    res.Payload
+                })
+            );
+        }
 
-            // return Ok(JsonConvert.SerializeObject(spendings.Payload, Formatting.Indented));
-            return Ok(new
+        [HttpPatch("edit-budgetcap")]
+        public async Task<IActionResult> EditBudgetCap(
+            [FromQuery] int categoryId,
+            [FromQuery] int bankInfoId,
+            [FromQuery] int budgetCap)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+
+            return (await budgetRepository.EditBudgetCap(new()
             {
-                spendings.Payload
-            });
+                Categorybudget = budgetCap,
+                Categoryid = categoryId,
+                Bankinfoid = bankInfoId,
+                Userid = userId,
+            })).Match<IActionResult>(
+                Left: (res) => BadRequest(res),
+                Right: (res) => Ok(res)
+            );
         }
 
 

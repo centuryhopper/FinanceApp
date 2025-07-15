@@ -1,9 +1,7 @@
-
-
 export type CurrentMonthlySpending = {
-    id: number;
-    category: string;
-    categoryId: number;
-    budgetCap: number;
-    spent: number;
-}
+  id: number;
+  category: string;
+  categoryId: number;
+  categoryBudget: number;
+  spent: number;
+};

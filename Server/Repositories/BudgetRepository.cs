@@ -26,7 +26,7 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
         return categories;
     }
 
-    public EitherAsync<GeneralResponse, GeneralResponse> InitializeBudgetCaps(int userId, int bankInfoId, int categoryId) => TryAsync(async () =>
+    public EitherAsync<GeneralResponse, GeneralResponse> InitializeBudgetCaps(int userId, int bankInfoId) => TryAsync(async () =>
     {
         var dbTransaction = await financeAppDbContext.Database.BeginTransactionAsync();
 
@@ -39,7 +39,10 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
 
             foreach (var category in categories)
             {
-                var record = await financeAppDbContext.Budgetcaps.FirstOrDefaultAsync(bc => bc.Bankinfoid == bankInfoId && bc.Categoryid == categoryId && bc.Userid == userId);
+                var record = await financeAppDbContext.Budgetcaps.FirstOrDefaultAsync(bc =>
+                    bc.Bankinfoid == bankInfoId &&
+                    bc.Categoryid == category.Categoryid &&
+                    bc.Userid == userId);
                 if (record is null)
                 {
                     await financeAppDbContext.Budgetcaps.AddAsync(new Budgetcap
@@ -53,7 +56,7 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
             }
 
             await dbTransaction.CommitAsync();
-            return new GeneralResponse(false, "Budget caps initialized!");
+            return new GeneralResponse(true, "Budget caps initialized!");
         }
         catch (System.Exception ex)
         {
@@ -152,18 +155,15 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
 --     3000, 10, 2, 1
 -- );
     */
-    public async Task<GeneralResponseWithPayload<LstOfSpendings>> GetCurrentMonthSpendingByCategoriesAsync(int bankInfoId, int userId)
+    public EitherAsync<GeneralResponseWithPayload<LstOfSpendings>, GeneralResponseWithPayload<LstOfSpendings>> GetCurrentMonthSpendingByCategoriesAsync(int bankInfoId, int userId) => TryAsync(async () =>
     {
+
         var bankInfo = await financeAppDbContext.Bankinfos
             .FirstOrDefaultAsync(b => b.Bankinfoid == bankInfoId && b.Userid == userId);
 
         if (bankInfo == null)
         {
-            return new GeneralResponseWithPayload<LstOfSpendings>(
-                false,
-                "Couldn't find your bank information",
-                Enumerable.Empty<CurrentMonthSpendingByCategoryDTO>()
-            );
+            throw new Exception("Couldn't find your bank information");
         }
 
         var currentMonth = DateTime.Now.Month;
@@ -174,7 +174,7 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
                     SELECT 
                     c.name AS category,
                     c.categoryid categoryid,
-                    bc.categorybudget budgetcap,
+                    bc.categorybudget categorybudget,
                     SUM(st.amount) AS spent
                     FROM (
                         SELECT * FROM streamlinedtransactions st1
@@ -195,11 +195,12 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
                 COALESCE(category, c.name) Category,
                 COALESCE(grouped.categoryid, c.categoryid) CategoryId,
                 COALESCE(spent, 0) Spent,
-                bc.categorybudget BudgetCap
+                bc.categorybudget CategoryBudget
                 FROM grouped
                 -- include everything from these two tables even if there's no intersection with the aggregated table
                 RIGHT JOIN category c on c.categoryid = grouped.categoryid
                 RIGHT JOIN budgetcaps bc on bc.categoryid = c.categoryid
+                ORDER BY CategoryId
         ",
         userId,
         bankInfoId,
@@ -212,6 +213,7 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
             "Success",
             spendingByCategories
         );
-    }
+
+    }).ToEither(ex => new GeneralResponseWithPayload<LstOfSpendings>(false, ex.Message, Enumerable.Empty<CurrentMonthSpendingByCategoryDTO>()));
 }
 

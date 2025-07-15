@@ -21,10 +21,10 @@
               <Budgetsbar
                 v-for="spending in spendings.items"
                 :key="spending.id"
-                :id="spending.categoryId"
+                :id="spending.id"
                 :category="spending.category"
                 :spent="spending.spent"
-                :budget="spending.budgetCap"
+                :budget="spending.categoryBudget"
                 @update:budgetLimit="
                   (id, newBudgetLimit) => {
                     updatebudgetLimit(id, newBudgetLimit);
@@ -53,11 +53,31 @@ const selectedBankId = sessionStorage.getItem("selectedBank");
 
 const updatebudgetLimit = async (id: number, newLimit: number) => {
   const item = spendings.items.find((b) => b.id === id);
-  if (item) item.budgetCap = newLimit;
-  console.log("updated budget limit for categoryid:", id);
-  // TODO: make api call here to edit budget cap
+  if (!item) {
+    console.log("budget not found :/");
+    return;
+  }
+  // console.log("updated budget limit for categoryid:", item.categoryId);
+  // make api call here to edit budget cap
   // server handles userid
-  // const response = await 
+  const response = await axios.patch("api/Budgets/edit-budgetcap", null, {
+    params: {
+      categoryId: item.categoryId,
+      bankInfoId: selectedBankId,
+      budgetCap: newLimit,
+    },
+    headers: {
+      Authorization: `Bearer ${authStre.token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (response.status === 200) {
+    const idx = spendings.items.findIndex((s) => s.id === id);
+    spendings.items[idx].categoryBudget = newLimit;
+  }
+
+  // console.log(response.data);
 };
 
 const monthNames = [
@@ -88,6 +108,23 @@ onMounted(async () => {
     // console.log("didSelectBank.value", didSelectBank.value);
     return;
   }
+
+  const initBudgetsResponse = await axios.get(
+    "api/Budgets/init-budgets/" + parseInt(selectedBankId!),
+    {
+      headers: {
+        Authorization: `Bearer ${authStre.token}`,
+      },
+    }
+  );
+
+  console.log(initBudgetsResponse.data);
+
+  if (initBudgetsResponse.status !== 200) {
+    console.log("couldn't initialize budgets properly");
+    return;
+  }
+
   const response = await axios.get<{ payload: CurrentMonthlySpending[] }>(
     "api/Budgets/current-month-spending-by-category/" + parseInt(selectedBankId!),
     {
@@ -96,10 +133,16 @@ onMounted(async () => {
       },
     }
   );
+
+  if (response.status !== 200) {
+    console.log("couldn't retrieve category spendings for the current month");
+    return;
+  }
+
   spendingsLoaded.value = true;
   spendings.items = response.data.payload;
 
-  console.log(spendings.items);
+  // console.log(spendings.items);
 });
 
 // const budgetInfo = ref([
