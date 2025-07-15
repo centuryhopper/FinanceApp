@@ -161,7 +161,7 @@ const readonlyData = computed(() => {
     // .filter((t) => t.date !== undefined)
     // .sort((a, b) => b.date!.localeCompare(a.date!))
     .map((t) => [t.date, t.name, t.amount, t.category, t.note]);
-    // console.log(result);
+  // console.log(result);
   return result;
 });
 
@@ -228,14 +228,14 @@ function getGlobalIndex(row: Transaction): number {
 async function saveRow(row: Transaction, index: number) {
   savingRowIndex.value = index;
   try {
-    console.log("Saving row to API:", row);
+    // console.log("Saving row to API:", row);
     const response = await axios.patch("api/Dashboard/editTransaction", row, {
       headers: {
         Authorization: `Bearer ${authStre.token}`,
         "Content-Type": "application/json",
       },
     });
-    console.log(response.data.message);
+    // console.log(response.data.message);
     if (response.data.flag) {
       showFeedbackPopup(true, response.data.message, "");
     } else {

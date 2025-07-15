@@ -40,8 +40,11 @@ namespace Server.Controllers
                 });
             }
 
-
-            return Ok(JsonConvert.SerializeObject(spendings.Payload, Formatting.Indented));
+            // return Ok(JsonConvert.SerializeObject(spendings.Payload, Formatting.Indented));
+            return Ok(new
+            {
+                spendings.Payload
+            });
         }
 
 

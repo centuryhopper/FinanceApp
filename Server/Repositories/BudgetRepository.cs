@@ -191,7 +191,7 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
                     WHERE st.amount > 0
                     GROUP BY category, c.categoryid, categorybudget
                 )
-                select ROW_NUMBER() OVER() - 1 AS Id,
+                SELECT ROW_NUMBER() OVER() - 1 AS Id,
                 COALESCE(category, c.name) Category,
                 COALESCE(grouped.categoryid, c.categoryid) CategoryId,
                 COALESCE(spent, 0) Spent,
@@ -204,7 +204,8 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
         userId,
         bankInfoId,
         currentMonth,
-        currentYear).ToListAsync();
+        currentYear)
+        .ToListAsync();
 
         return new GeneralResponseWithPayload<LstOfSpendings>(
             true,

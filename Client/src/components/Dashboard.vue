@@ -66,7 +66,7 @@ onMounted(async () => {
     return;
   }
   const response = await axios.get<Transaction[]>(
-    "api/Dashboard/transactions/" + selectedBank,
+    "api/Dashboard/transactions/" + parseInt(selectedBank!),
     {
       headers: {
         Authorization: `Bearer ${authStre.token}`,
@@ -99,7 +99,7 @@ onMounted(async () => {
   }
 
   const monthlySpendingResponse = await axios.get<MonthlySpending[]>(
-    "api/Dashboard/monthlySpendings/" + selectedBank,
+    "api/Dashboard/monthlySpendings/" + parseInt(selectedBank!),
     {
       headers: {
         Authorization: `Bearer ${authStre.token}`,

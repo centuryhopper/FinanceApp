@@ -21,11 +21,15 @@
               <Budgetsbar
                 v-for="spending in spendings.items"
                 :key="spending.id"
-                :id="spending.id"
+                :id="spending.categoryId"
                 :category="spending.category"
                 :spent="spending.spent"
                 :budget="spending.budgetCap"
-                @update:budgetLimit="handleBudgetLimitUpdate"
+                @update:budgetLimit="
+                  (id, newBudgetLimit) => {
+                    updatebudgetLimit(id, newBudgetLimit);
+                  }
+                "
               />
               <!-- listen for that change -->
             </div>
@@ -45,16 +49,15 @@ import type { CurrentMonthlySpending } from "../types/CurrentMonthlySpending";
 import Budgetsbar from "./Budgetsbar.vue";
 
 const { isDark } = useTheme();
+const selectedBankId = sessionStorage.getItem("selectedBank");
 
-const handleBudgetLimitUpdate = (id: number, newBudgetLimit: number) => {
-  updatebudgetLimit(id, newBudgetLimit);
-};
-
-const updatebudgetLimit = (id: number, newLimit: number) => {
+const updatebudgetLimit = async (id: number, newLimit: number) => {
   const item = spendings.items.find((b) => b.id === id);
   if (item) item.budgetCap = newLimit;
-  console.log("updated budget limit", id);
-  // TODO: make api call here
+  console.log("updated budget limit for categoryid:", id);
+  // TODO: make api call here to edit budget cap
+  // server handles userid
+  // const response = await 
 };
 
 const monthNames = [
@@ -73,8 +76,7 @@ const monthNames = [
 ];
 
 const currentMonthString = monthNames[new Date().getMonth()];
-const selectedBank = sessionStorage.getItem("selectedBank");
-const didSelectBank = ref(!!selectedBank);
+const didSelectBank = ref(!!selectedBankId);
 const authStre = authStore();
 const spendings = reactive<{ items: CurrentMonthlySpending[] }>({
   items: [],
@@ -87,7 +89,7 @@ onMounted(async () => {
     return;
   }
   const response = await axios.get<{ payload: CurrentMonthlySpending[] }>(
-    "api/Budgets/current-month-spending-by-category/" + selectedBank,
+    "api/Budgets/current-month-spending-by-category/" + parseInt(selectedBankId!),
     {
       headers: {
         Authorization: `Bearer ${authStre.token}`,
@@ -96,6 +98,8 @@ onMounted(async () => {
   );
   spendingsLoaded.value = true;
   spendings.items = response.data.payload;
+
+  console.log(spendings.items);
 });
 
 // const budgetInfo = ref([

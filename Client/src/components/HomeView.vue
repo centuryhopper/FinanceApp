@@ -33,7 +33,7 @@
                   :key="bank.bankinfoid"
                   v-for="bank in banks"
                   class="d-flex justify-content-between mb-1 bank-selection"
-                  @click="onBankSelection(bank.bankname)"
+                  @click="onBankSelection(bank.bankinfoid)"
                 >
                   <span>{{ bank.bankname }}</span>
                   <strong> ${{ bank.totalbankbalance }}</strong>
@@ -137,10 +137,16 @@ const balanceTotal = computed(() =>
 const recentTransactions = ref<Transaction[]>([]);
 const transactionsLoaded = ref(false);
 
-const onBankSelection = async (bankName: string) => {
+const onBankSelection = async (bankInfoId: number) => {
   // get transactions depending on the bank selected
-  const currentInstitution = sessionStorage.getItem("selectedBank");
-  if (bankName === currentInstitution) {
+  const currentInstitutionId = sessionStorage.getItem("selectedBank") || "-1";
+
+  if (currentInstitutionId === "-1") {
+    console.log("no institution found");
+    return;
+  }
+
+  if (bankInfoId === parseInt(currentInstitutionId)) {
     console.log("already selected");
     return;
   }
@@ -148,7 +154,7 @@ const onBankSelection = async (bankName: string) => {
   transactionsLoaded.value = false;
 
   const transactionsResponse = await axios.get<Transaction[]>(
-    "api/Bank/recent-transactions/" + bankName,
+    "api/Bank/recent-transactions/" + bankInfoId,
     {
       headers: {
         Authorization: `Bearer ${authStre.token}`,
