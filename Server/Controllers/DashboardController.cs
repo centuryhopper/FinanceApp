@@ -24,7 +24,7 @@ namespace Server.Controllers
         [HttpPatch("editTransaction")]
         public async Task<IActionResult> EditTransactionsAsync([FromBody] StreamlinedTransactionDTO dto)
         {
-            System.Console.WriteLine("editTransaction called");
+            // System.Console.WriteLine("editTransaction called");
             return await streamlinedTransactionsRepository.EditTransactionAsync(dto).Match<IActionResult>(
                 Left: (res) => Ok(res),
                 Right: (res) => Ok(res)
@@ -43,3 +43,18 @@ namespace Server.Controllers
         }
     }
 }
+
+
+/*
+select sum(st.amount) totalspent, c.name from streamlinedtransactions st
+join categorytransaction_junc cj on cj.streamlinedtransactionsid = st.streamlinedtransactionsid
+join category c on c.categoryid = cj.categoryid
+where bankinfoid = 3 and c.categoryid = 9
+group by c.name;
+
+select *, c.name from streamlinedtransactions st
+join categorytransaction_junc cj on cj.streamlinedtransactionsid = st.streamlinedtransactionsid
+join category c on c.categoryid = cj.categoryid
+where bankinfoid = 3 and c.categoryid = 9 -- AND EXTRACT(MONTH FROM st.date) = 8 AND EXTRACT(YEAR FROM st.date) = 2024
+
+*/

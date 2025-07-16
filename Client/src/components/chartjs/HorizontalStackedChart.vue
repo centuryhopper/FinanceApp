@@ -29,7 +29,9 @@ watch(
   () => monthlySpending,
   (newMonthlySpending) => {
     // console.log('newMonthlySpending', newMonthlySpending);
-    monthLabels.value = [...new Set(newMonthlySpending.map((sp) => sp.month))].sort((a,b) => b.localeCompare(a));
+    monthLabels.value = [
+      ...new Set(newMonthlySpending.map((sp) => sp.month)),
+    ].sort((a, b) => b.localeCompare(a));
     categories.value = [
       ...new Set(newMonthlySpending.map((sp) => sp.categorySum.category)),
     ];
@@ -61,7 +63,7 @@ watch(
         ...monthlySpending.map((obj) => obj.categorySum.total)
       );
 
-      //console.log(datasets);
+      // console.log("datasets", datasets);
 
       chartInstance = new Chart(canvasRef.value, {
         type: "bar",

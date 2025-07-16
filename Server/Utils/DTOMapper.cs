@@ -97,6 +97,7 @@ public static class DTOMapper
             Date = DateOnly.FromDateTime(obj.Date.Value),
             EnvironmentType = obj.Environmenttype,
             Category = obj.Categories.First().Name,
+            BankInfoId = obj.Bankinfoid,
         };
     }
 
@@ -104,6 +105,7 @@ public static class DTOMapper
     {
         return new()
         {
+            Bankinfoid = dto.BankInfoId,
             Userid = dto.UserId,
             Transactionid = dto.TransactionId,
             Name = dto.Name,

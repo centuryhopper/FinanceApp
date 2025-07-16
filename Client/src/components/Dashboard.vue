@@ -76,6 +76,8 @@ onMounted(async () => {
 
   transactions.value = response.data;
 
+  console.log(transactions.value.map(x=>({...x})));
+
   // Get all its unique categories and use an obj to store them as keys and values will be the sum of all the amounts spent in those categories:
   const uniqueCategories = [
     ...new Set(transactions.value.map((t) => t.category).filter((c) => !!c)),
@@ -112,8 +114,8 @@ onMounted(async () => {
   );
   //.slice(0,5);
 
+  // console.log(monthlySpending.value);
 });
-
 </script>
 
 <style scoped>

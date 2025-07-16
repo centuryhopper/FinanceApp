@@ -14,6 +14,7 @@
     >
       <thead>
         <tr>
+          <th>Row #</th>
           <th>Date</th>
           <th>Name</th>
           <th>Amount</th>
@@ -45,6 +46,7 @@
       <table class="table table-bordered" style="width: 100%">
         <thead>
           <tr>
+            <th>Row #</th>
             <th>Date</th>
             <th>Name</th>
             <th>Amount</th>
@@ -55,6 +57,9 @@
         </thead>
         <tbody>
           <tr v-for="(row, rowIndex) in paginatedData" :key="rowIndex">
+            <td>
+              <span>{{ rowIdxOffset + rowIndex + 1 }}</span>
+            </td>
             <td>
               <input type="date" v-model="row.date" class="form-control" readonly />
             </td>
@@ -98,9 +103,10 @@
             v-model.number="rowsPerPage"
             class="form-select d-inline-block w-auto ms-2"
           >
-            <option :value="5">5</option>
             <option :value="10">10</option>
-            <option :value="15">15</option>
+            <option :value="25">25</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
           </select>
         </div>
 
@@ -160,7 +166,7 @@ const readonlyData = computed(() => {
   const result = editableData.items
     // .filter((t) => t.date !== undefined)
     // .sort((a, b) => b.date!.localeCompare(a.date!))
-    .map((t) => [t.date, t.name, t.amount, t.category, t.note]);
+    .map((t, idx) => [idx + 1, t.date, t.name, t.amount, t.category, t.note]);
   // console.log(result);
   return result;
 });
@@ -181,7 +187,7 @@ const categoryFilter = ref("");
 
 // Pagination
 const currentPage = ref(1);
-const rowsPerPage = ref(5);
+const rowsPerPage = ref(10);
 
 // Filtered & Searched
 const filteredData = computed(() =>
@@ -207,6 +213,11 @@ const totalPages = computed(() =>
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * rowsPerPage.value;
   return [...filteredData.value].slice(start, start + rowsPerPage.value);
+});
+
+const rowIdxOffset = computed(() => {
+  const start = (currentPage.value - 1) * rowsPerPage.value;
+  return start;
 });
 
 // Extract unique categories

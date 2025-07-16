@@ -75,7 +75,9 @@ public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbC
         }
 
         IQueryable<Streamlinedtransaction> query = financeAppDbContext.Streamlinedtransactions
-        .Where(t => t.Userid == userId && t.Bankinfoid == bankInfo.Bankinfoid)
+        .Where(
+            t => t.Userid == userId
+            && t.Bankinfoid == bankInfo.Bankinfoid)
         .OrderByDescending(t => t.Date);
 
         if (numTransactions.HasValue)
@@ -83,7 +85,8 @@ public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbC
             query = query.Take(numTransactions.Value);
         }
 
-        var transactions = await query.Include(t => t.Categories)
+        var transactions = await query
+        .Include(t => t.Categories)
         .Select(t => t.ToDTO())
         .ToListAsync();
 
