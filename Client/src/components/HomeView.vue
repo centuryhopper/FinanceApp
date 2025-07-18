@@ -2,9 +2,19 @@
   <div v-if="authStre.isAuthenticated">
     <div class="container m-5 p-5">
       <h1 class="fw-bold fs-3 text-center m-3">Welcome to My Finance App</h1>
-      <div class="text-center m-3">
+      <!-- <div class="text-center m-3">
         <button class="btn btn-primary mb-4" @click="linkPlaid">
           Connect a bank account
+        </button>
+      </div> -->
+
+      <div class="d-flex justify-content-evenly">
+        <button class="btn btn-primary mb-4" @click="linkPlaid">
+          Connect a bank account
+        </button>
+
+        <button class="btn btn-primary mb-4" @click="syncTransactions">
+          Sync Transactions
         </button>
       </div>
 
@@ -33,7 +43,7 @@
                   :key="bank.bankinfoid"
                   v-for="bank in banks"
                   class="d-flex justify-content-between mb-1 bank-selection"
-                  @click="onBankSelection(bank.bankinfoid)"
+                  @click="onBankSelection(bank.bankinfoid, bank.bankname)"
                 >
                   <span>{{ bank.bankname }}</span>
                   <strong> ${{ bank.totalbankbalance }}</strong>
@@ -134,10 +144,80 @@ const balanceTotal = computed(() =>
   banks.value.reduce((acc, currentAccount) => currentAccount.totalbankbalance + acc, 0)
 );
 
+const syncTransactions = async () => {
+  // check local storage to see if we already pulled data within 24 hours
+  // if we did then show warning popup and terminate early
+  // otherwise we can pull data with api call and upsert local storage value
+  const lastSaved = localStorage.getItem("lastSaved");
+  const selectedBankName = localStorage.getItem("selectedBankName");
+
+  if (!selectedBankName) {
+    console.log("no banks found");
+    return;
+  }
+
+  if (lastSaved) {
+    const savedTime = parseInt(lastSaved, 10);
+    const now = Date.now();
+    const hoursPassed = (now - savedTime) / (1000 * 60 * 60);
+
+    if (hoursPassed >= 24) {
+      // make api call
+      const response = await axios.get("api/Plaid/sync-transactions", {
+        params: {
+          institutionName: selectedBankName,
+        },
+        headers: {
+          Authorization: `Bearer ${authStre.token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        await showFeedbackPopup({
+          successMsg: response.data.message,
+        });
+      } else {
+        await showFeedbackPopup({
+          success: false,
+          failMsg: "No transactions to sync",
+        });
+      }
+      const now = Date.now(); // current time in milliseconds
+      localStorage.setItem("lastSaved", now.toString());
+    } else {
+      console.log(`Only ${hoursPassed.toFixed(2)} hours have passed.`);
+    }
+  } else {
+    // make api call
+    const response = await axios.get("api/Plaid/sync-transactions", {
+      params: {
+        institutionName: selectedBankName,
+      },
+      headers: {
+        Authorization: `Bearer ${authStre.token}`,
+      },
+    });
+
+    if (response.status === 200) {
+      await showFeedbackPopup({
+        successMsg: response.data.message,
+      });
+    } else {
+      await showFeedbackPopup({
+        success: false,
+        failMsg: "No transactions to sync",
+      });
+    }
+
+    const now = Date.now(); // current time in milliseconds
+    localStorage.setItem("lastSaved", now.toString());
+  }
+};
+
 const recentTransactions = ref<Transaction[]>([]);
 const transactionsLoaded = ref(false);
 
-const onBankSelection = async (bankInfoId: number) => {
+const onBankSelection = async (bankInfoId: number, bankName: string) => {
   // get transactions depending on the bank selected
   const currentInstitutionId = sessionStorage.getItem("selectedBank") || "-1";
 
@@ -150,6 +230,9 @@ const onBankSelection = async (bankInfoId: number) => {
     console.log("already selected");
     return;
   }
+
+  sessionStorage.setItem("selectedBank", bankInfoId.toString());
+  sessionStorage.setItem("selectedBankName", bankName);
 
   transactionsLoaded.value = false;
 
@@ -185,8 +268,9 @@ onMounted(async () => {
       return;
     }
 
-    const firstInstitutionId = banks.value[0].bankinfoid;
+    const firstInstitutionId = banks.value[1].bankinfoid;
     sessionStorage.setItem("selectedBank", firstInstitutionId.toString());
+    sessionStorage.setItem("selectedBankName", banks.value[1].bankname);
 
     const transactionsResponse = await axios.get<Transaction[]>(
       "api/Bank/recent-transactions/" + firstInstitutionId,
@@ -204,7 +288,10 @@ onMounted(async () => {
     // console.log(transactionsLoaded);
   } catch (e) {
     console.error("Error fetching banks:", e);
-    await showFeedbackPopup(false, "", "Please try again later.");
+    await showFeedbackPopup({
+      success: false,
+      failMsg: "Please try again later.",
+    });
   }
 });
 

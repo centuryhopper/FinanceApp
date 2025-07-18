@@ -51,6 +51,7 @@ import HorizontalStackedChart from "./chartjs/HorizontalStackedChart.vue";
 import TransactionsGrid from "./TransactionsGrid.vue";
 
 const selectedBank = sessionStorage.getItem("selectedBank");
+const selectedBankName = sessionStorage.getItem("selectedBankName");
 const didSelectBank = ref(!!selectedBank);
 const authStre = authStore();
 const transactions = ref<Transaction[]>([]);
@@ -60,9 +61,9 @@ const readonlyCategoryTotals = computed(() => categoryTotals.value ?? {});
 
 const monthlySpending = ref<MonthlySpending[]>([]);
 const readonlyMonthlySpending = computed(() => monthlySpending.value ?? []);
-// TODO: make sure the numbering isn't off for the horizontal stacked chart
+// Make sure the numbering isn't off for the horizontal stacked chart
 onMounted(async () => {
-  if (!didSelectBank.value) {
+  if (!didSelectBank.value || !selectedBankName) {
     return;
   }
   const response = await axios.get<Transaction[]>(
@@ -76,21 +77,26 @@ onMounted(async () => {
 
   transactions.value = response.data;
 
-  console.log(transactions.value.map(x=>({...x})));
+  // console.log(transactions.value.map((x) => ({ ...x })));
 
   // Get all its unique categories and use an obj to store them as keys and values will be the sum of all the amounts spent in those categories:
   const uniqueCategories = [
     ...new Set(transactions.value.map((t) => t.category).filter((c) => !!c)),
   ];
 
-  // console.log(uniqueCategories);
+  // console.log("uniqueCategories", uniqueCategories);
 
   const tempTotals: CategorySum = {};
 
   for (const category of uniqueCategories) {
     let sumTotal = transactions.value.reduce((acc, obj) => {
+      if (selectedBankName.toLowerCase().includes("cit bank")) {
+        obj.amount = obj.amount > 0 ? -obj.amount : Math.abs(obj.amount);
+      }
       return obj.category === category ? acc + obj.amount : acc;
     }, 0);
+
+    // console.log(category, sumTotal);
 
     sumTotal = Math.max(0, sumTotal);
 
@@ -99,6 +105,8 @@ onMounted(async () => {
     }
     categoryTotals.value = tempTotals;
   }
+
+  // console.log(categoryTotals.value);
 
   const monthlySpendingResponse = await axios.get<MonthlySpending[]>(
     "api/Dashboard/monthlySpendings/" + parseInt(selectedBank!),
@@ -112,9 +120,9 @@ onMounted(async () => {
   monthlySpending.value = monthlySpendingResponse.data.filter(
     (sp) => sp.categorySum.total > 0
   );
-  //.slice(0,5);
 
-  // console.log(monthlySpending.value);
+  // console.log(monthlySpending.value.map((x) => ({ ...x })));
+
 });
 </script>
 

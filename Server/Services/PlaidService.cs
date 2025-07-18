@@ -129,39 +129,6 @@ public class PlaidService
         };
     }
 
-
-    // public async Task<TransactionsSyncResponse> GetTransactionsSyncAsync(string accessToken)
-    // {
-    //     var request = new TransactionsSyncRequest
-    //     {
-    //         AccessToken = accessToken,
-    //     };
-
-    //     var response = await plaidClient.TransactionsSyncAsync(request);
-
-    //     return response;
-    // }
-
-
-    // public async Task<TransactionsGetResponse> GetTransactionsAsync(string accessToken)
-    // {
-    //     var request = new TransactionsGetRequest
-    //     {
-    //         AccessToken = accessToken,
-    //         StartDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-2).Date),
-    //         EndDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
-    //         Options = new TransactionsGetRequestOptions
-    //         {
-    //             // Count = 500,
-    //             DaysRequested = 730,
-    //         },
-    //     };
-
-    //     var response = await plaidClient.TransactionsGetAsync(request);
-
-    //     return response;
-    // }
-
     /// <summary>
     /// gets sent up to client app
     /// </summary>

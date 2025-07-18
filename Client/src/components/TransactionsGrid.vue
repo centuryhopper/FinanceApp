@@ -248,12 +248,17 @@ async function saveRow(row: Transaction, index: number) {
     });
     // console.log(response.data.message);
     if (response.data.flag) {
-      showFeedbackPopup(true, response.data.message, "");
+      showFeedbackPopup({
+        successMsg: response.data.message,
+      });
     } else {
-      showFeedbackPopup(false, "", response.data.message);
+      showFeedbackPopup({ success: false, failMsg: response.data.message });
     }
   } catch (err) {
-    showFeedbackPopup(false, "", err as string);
+    showFeedbackPopup({
+      success: false,
+      failMsg: err as string,
+    });
   } finally {
     savingRowIndex.value = null;
   }

@@ -6,9 +6,14 @@ export default function useSweetAlertPopups()
 {
     const { isDark } = useTheme()
     const showFeedbackPopup = async (
-        success: boolean = true,
-        successMsg: string,
-        failMsg: string,
+        { success = true,
+            successMsg = '',
+            failMsg = '', }
+            : {
+                success?: boolean;
+                successMsg?: string;
+                failMsg?: string;
+            }
     ): Promise<void> =>
     {
         const result = await Swal.fire({

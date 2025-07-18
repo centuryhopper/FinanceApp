@@ -3,11 +3,13 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 
-export function usePlaid() {
+export function usePlaid()
+{
   const bankLink = async (
     bankAccountName: string,
     success: boolean = true,
-  ): Promise<void> => {
+  ): Promise<void> =>
+  {
     const result = await Swal.fire({
       title: success ? "Success!" : "Failure...",
       text: success
@@ -17,12 +19,18 @@ export function usePlaid() {
       confirmButtonText: "OK",
     });
 
-    // console.log(result.isConfirmed);
+    if (result.isConfirmed)
+    {
+      location.reload()
+    }
   };
-  const linkPlaid = async () => {
+
+  const linkPlaid = async () =>
+  {
     const jwtToken =
       localStorage.getItem("token") ?? sessionStorage.getItem("token");
-    if (!jwtToken) {
+    if (!jwtToken)
+    {
       console.error("JWT token not found");
       return;
     }
@@ -41,13 +49,14 @@ export function usePlaid() {
     const handler = window.Plaid.create({
       token: data.link_token,
 
-      onSuccess: async (public_token, metadata) => {
+      onSuccess: async (public_token, metadata) =>
+      {
         // console.log("Plaid linked:", metadata);
 
         const jwtToken =
           localStorage.getItem("token") ?? sessionStorage.getItem("token");
 
-        console.log(jwtToken);
+        // console.log(jwtToken);
 
         const bankstuff = await axios.post(
           "api/Plaid/exchange-public-token",
@@ -59,11 +68,12 @@ export function usePlaid() {
           },
         );
 
-        console.log(bankstuff);
+        // console.log(bankstuff);
 
         await bankLink((bankstuff as any).data.name);
       },
-      onExit: (err, metadata) => {
+      onExit: (err, metadata) =>
+      {
         console.log("on exit is called");
         if (err) console.error("Plaid exited:", err);
         if (metadata) console.log("metadata:", metadata);

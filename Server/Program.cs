@@ -144,6 +144,7 @@ builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("TransactionsSyncing", options =>
     {
+        // Once a day
         options.PermitLimit = 1;
         options.Window = TimeSpan.FromHours(24);
         // options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;

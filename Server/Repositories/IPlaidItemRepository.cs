@@ -14,6 +14,6 @@ public interface IPlaidItemRepository
     /// <param name="userId"></param>
     /// <returns></returns>
     Task<IEnumerable<PlaidItemDTO>> GetPlaidItemsAsync(int userId);
-    EitherAsync<string, GeneralResponse> StorePlaidItemAsync(PlaidItemDTO? dto);
-    EitherAsync<string, GeneralResponse> UpdatePlaidItemAsync(PlaidItemDTO? dto);
+    EitherAsync<GeneralResponse, GeneralResponse> StorePlaidItemAsync(PlaidItemDTO? dto);
+    EitherAsync<GeneralResponse, GeneralResponse> UpdatePlaidItemAsync(PlaidItemDTO? dto);
 }

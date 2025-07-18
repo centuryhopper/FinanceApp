@@ -13,7 +13,7 @@ namespace Server.Repositories;
 
 public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext, EncryptionContext encryptionContext) : IPlaidItemRepository
 {
-    public EitherAsync<string, GeneralResponse> StorePlaidItemAsync(PlaidItemDTO? dto) => TryAsync(async () =>
+    public EitherAsync<GeneralResponse, GeneralResponse> StorePlaidItemAsync(PlaidItemDTO? dto) => TryAsync(async () =>
     {
         if (dto is null)
         {
@@ -26,7 +26,7 @@ public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext, Encryp
 
         return new GeneralResponse(true, "Plaid item added");
 
-    }).ToEither(ex => ex.Message);
+    }).ToEither(ex => new GeneralResponse(false, ex.Message));
 
 
     public async Task<IEnumerable<PlaidItemDTO>> GetPlaidItemsAsync(int userId)
@@ -49,7 +49,7 @@ public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext, Encryp
         return entity is null ? None : Some(entity.ToDTO(encryptionContext));
     }
 
-    public EitherAsync<string, GeneralResponse> UpdatePlaidItemAsync(PlaidItemDTO? dto) => TryAsync(async () =>
+    public EitherAsync<GeneralResponse, GeneralResponse> UpdatePlaidItemAsync(PlaidItemDTO? dto) => TryAsync(async () =>
     {
         if (dto is null)
         {
@@ -63,5 +63,5 @@ public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext, Encryp
 
         return new GeneralResponse(true, "Plaid item added");
 
-    }).ToEither(ex => ex.Message);
+    }).ToEither(ex => new GeneralResponse(false, ex.Message));
 }

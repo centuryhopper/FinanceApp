@@ -140,11 +140,9 @@ public class PlaidController : ControllerBase
                     Institutionname = authInfo.Item.InstitutionName,
                     Datelinked = DateTime.UtcNow,
                 })).Match(
-                    Left: msg => new GeneralResponse(false, msg),
+                    Left: _ => _,
                     Right: _ => _
                 );
-
-
 
                 return Ok(new
                 {
