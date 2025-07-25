@@ -46,6 +46,7 @@ import { onMounted, reactive, ref } from "vue";
 import { authStore } from "../stores/auth";
 import { useTheme } from "../stores/theme-store";
 import type { CurrentMonthlySpending } from "../types/CurrentMonthlySpending";
+import { API_BASE_URL } from "../utils/utils";
 import Budgetsbar from "./Budgetsbar.vue";
 
 const { isDark } = useTheme();
@@ -60,7 +61,7 @@ const updatebudgetLimit = async (id: number, newLimit: number) => {
   // console.log("updated budget limit for categoryid:", item.categoryId);
   // make api call here to edit budget cap
   // server handles userid
-  const response = await axios.patch("api/Budgets/edit-budgetcap", null, {
+  const response = await axios.patch(API_BASE_URL + "api/Budgets/edit-budgetcap", null, {
     params: {
       categoryId: item.categoryId,
       bankInfoId: selectedBankId,
@@ -110,7 +111,7 @@ onMounted(async () => {
   }
 
   const initBudgetsResponse = await axios.get(
-    "api/Budgets/init-budgets/" + parseInt(selectedBankId!),
+    API_BASE_URL + "api/Budgets/init-budgets/" + parseInt(selectedBankId!),
     {
       headers: {
         Authorization: `Bearer ${authStre.token}`,
@@ -126,7 +127,9 @@ onMounted(async () => {
   }
 
   const response = await axios.get<{ payload: CurrentMonthlySpending[] }>(
-    "api/Budgets/current-month-spending-by-category/" + parseInt(selectedBankId!),
+    API_BASE_URL +
+      "api/Budgets/current-month-spending-by-category/" +
+      parseInt(selectedBankId!),
     {
       headers: {
         Authorization: `Bearer ${authStre.token}`,

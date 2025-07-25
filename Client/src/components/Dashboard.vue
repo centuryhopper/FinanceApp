@@ -45,6 +45,7 @@ import { authStore } from "../stores/auth";
 import type { CategorySum } from "../types/CategorySum";
 import type { MonthlySpending } from "../types/MonthlySpending";
 import type { Transaction } from "../types/Transactions";
+import { API_BASE_URL } from "../utils/utils";
 import BarChart from "./chartjs/BarChart.vue";
 import DoughnutChart from "./chartjs/DoughnutChart.vue";
 import HorizontalStackedChart from "./chartjs/HorizontalStackedChart.vue";
@@ -67,7 +68,7 @@ onMounted(async () => {
     return;
   }
   const response = await axios.get<Transaction[]>(
-    "api/Dashboard/transactions/" + parseInt(selectedBank!),
+    API_BASE_URL + "api/Dashboard/transactions/" + parseInt(selectedBank!),
     {
       headers: {
         Authorization: `Bearer ${authStre.token}`,
@@ -109,7 +110,7 @@ onMounted(async () => {
   // console.log(categoryTotals.value);
 
   const monthlySpendingResponse = await axios.get<MonthlySpending[]>(
-    "api/Dashboard/monthlySpendings/" + parseInt(selectedBank!),
+    API_BASE_URL + "api/Dashboard/monthlySpendings/" + parseInt(selectedBank!),
     {
       headers: {
         Authorization: `Bearer ${authStre.token}`,
@@ -122,7 +123,6 @@ onMounted(async () => {
   );
 
   // console.log(monthlySpending.value.map((x) => ({ ...x })));
-
 });
 </script>
 

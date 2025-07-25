@@ -2,6 +2,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
+import { API_BASE_URL } from "../utils/utils";
 
 export function usePlaid()
 {
@@ -38,7 +39,7 @@ export function usePlaid()
     const decoded = jwtDecode(jwtToken);
     // console.log(decoded);
     const userId = decoded.sub;
-    const { data } = await axios.get("api/Plaid/get-link-token/" + userId, {
+    const { data } = await axios.get(API_BASE_URL+"api/Plaid/get-link-token/" + userId, {
       headers: {
         Authorization: `Bearer ${jwtToken}`,
       },
@@ -59,7 +60,7 @@ export function usePlaid()
         // console.log(jwtToken);
 
         const bankstuff = await axios.post(
-          "api/Plaid/exchange-public-token",
+          API_BASE_URL+"api/Plaid/exchange-public-token",
           { PublicToken: public_token },
           {
             headers: {

@@ -132,6 +132,7 @@ import useSweetAlertPopups from "../composables/useSweetAlertPopups";
 import { authStore } from "../stores/auth";
 import type { BankInfo } from "../types/BankInfo";
 import type { Transaction } from "../types/Transactions";
+import { API_BASE_URL } from "../utils/utils";
 
 const authStre = authStore();
 // console.log(authStre.claims);
@@ -163,7 +164,7 @@ const syncTransactions = async () => {
 
     if (hoursPassed >= 24) {
       // make api call
-      const response = await axios.get("api/Plaid/sync-transactions", {
+      const response = await axios.get(API_BASE_URL + "api/Plaid/sync-transactions", {
         params: {
           institutionName: selectedBankName,
         },
@@ -189,7 +190,7 @@ const syncTransactions = async () => {
     }
   } else {
     // make api call
-    const response = await axios.get("api/Plaid/sync-transactions", {
+    const response = await axios.get(API_BASE_URL + "api/Plaid/sync-transactions", {
       params: {
         institutionName: selectedBankName,
       },
@@ -237,7 +238,7 @@ const onBankSelection = async (bankInfoId: number, bankName: string) => {
   transactionsLoaded.value = false;
 
   const transactionsResponse = await axios.get<Transaction[]>(
-    "api/Bank/recent-transactions/" + bankInfoId,
+    API_BASE_URL + "api/Bank/recent-transactions/" + bankInfoId,
     {
       headers: {
         Authorization: `Bearer ${authStre.token}`,
@@ -254,11 +255,14 @@ onMounted(async () => {
     return;
   }
   try {
-    const bankResponse = await axios.get<BankInfo[]>("api/Bank/get-banks", {
-      headers: {
-        Authorization: `Bearer ${authStre.token}`,
-      },
-    });
+    const bankResponse = await axios.get<BankInfo[]>(
+      API_BASE_URL + "api/Bank/get-banks",
+      {
+        headers: {
+          Authorization: `Bearer ${authStre.token}`,
+        },
+      }
+    );
     // console.log(transactionsResponse);
     banks.value = bankResponse.data;
     banksLoaded.value = true;
@@ -270,10 +274,10 @@ onMounted(async () => {
 
     const firstInstitutionId = banks.value[1].bankinfoid;
     sessionStorage.setItem("selectedBank", firstInstitutionId.toString());
-    sessionStorage.setItem("selectedBankName", banks.value[1].bankname);
+    sessionStorage.setItem("selectedBankName", banks.value[0].bankname);
 
     const transactionsResponse = await axios.get<Transaction[]>(
-      "api/Bank/recent-transactions/" + firstInstitutionId,
+      API_BASE_URL + "api/Bank/recent-transactions/" + firstInstitutionId,
       {
         headers: {
           Authorization: `Bearer ${authStre.token}`,

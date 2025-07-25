@@ -141,6 +141,7 @@ import { computed, reactive, ref, watch } from "vue";
 import useSweetAlertPopups from "../composables/useSweetAlertPopups";
 import { authStore } from "../stores/auth";
 import type { Transaction } from "../types/Transactions";
+import { API_BASE_URL } from "../utils/utils";
 
 DataTable.use(DataTablesCore);
 
@@ -240,12 +241,16 @@ async function saveRow(row: Transaction, index: number) {
   savingRowIndex.value = index;
   try {
     // console.log("Saving row to API:", row);
-    const response = await axios.patch("api/Dashboard/editTransaction", row, {
-      headers: {
-        Authorization: `Bearer ${authStre.token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.patch(
+      API_BASE_URL + "api/Dashboard/editTransaction",
+      row,
+      {
+        headers: {
+          Authorization: `Bearer ${authStre.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
     // console.log(response.data.message);
     if (response.data.flag) {
       showFeedbackPopup({
