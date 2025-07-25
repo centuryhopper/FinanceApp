@@ -176,7 +176,7 @@ app.UseAuthorization();
 app.UseCors(CLIENT);
 
 app.MapControllers();
-
+//
 // Catch-all route to serve index.html for React routes
 app.MapFallbackToFile("index.html");
 
