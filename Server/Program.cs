@@ -160,7 +160,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:5173", "https://centuryhopper.github.io/FinanceAppClient/")
+                .WithOrigins("http://localhost:5173", "https://centuryhopper.github.io")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
@@ -198,10 +198,11 @@ if (app.Environment.IsDevelopment())
 // app.MapGet("/", () => "Plaid API is running");
 
 app.UseHttpsRedirection();
+app.UseCors(CLIENT);
+
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors(CLIENT);
 
 app.MapControllers();
 //
