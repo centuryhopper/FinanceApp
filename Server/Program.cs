@@ -20,6 +20,33 @@ TODO: Perhaps have a categories table (categoryid, category name) and a categori
 TODO: create an api call that syncs the latest transactions with your application DONE
 TODO: if user tries to sync a bank that is already connected then don't query any transactions and just show pop up on client side that bank has already been linked
 
+
+BudgetDB_CONN
+*******
+ENCRYPTION_IV
+*******
+ENCRYPTION_KEY
+*******
+HOST
+*******
+JWT_AUDIENCE
+*******
+JWT_ISSUER
+*******
+JWT_SECRET
+*******
+PLAID_CLIENT_ID
+*******
+PLAID_ENV
+*******
+PLAID_PRODUCTION_SECRET
+*******
+PLAID_SANDBOX_SECRET
+*******
+PORT
+*******
+
+
 */
 
 
@@ -55,7 +82,8 @@ builder.Services.AddScoped<PlaidService>();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
-}); ;
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -132,7 +160,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:5173")
+                .WithOrigins("http://localhost:5173", "https://centuryhopper.github.io/FinanceAppClient/")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();

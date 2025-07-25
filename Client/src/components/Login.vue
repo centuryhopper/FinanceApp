@@ -22,7 +22,7 @@ const { isAuthenticated, login } = authStore();
 
 const onLogin: (model: LoginModel) => Promise<LoginResponse> = async (model) => {
   try {
-    const response = await axios.post("/api/account/login", {
+    const response = await axios.post("financeapp-production-8b7b.up.railway.app/api/account/login", {
       email: model.email,
       password: model.password,
       rememberMe: model.rememberMe,
