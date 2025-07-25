@@ -5,7 +5,7 @@ COPY Client/ ./Client/
 WORKDIR /app/Client
 RUN npm install
 RUN npm run build
-#
+
 # Stage 2: Build .NET backend
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
