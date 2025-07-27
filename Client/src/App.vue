@@ -3,11 +3,9 @@
     <header>
       <Navbar />
     </header>
-
     <main class="app-content">
       <router-view />
     </main>
-
     <Footer />
   </div>
 </template>

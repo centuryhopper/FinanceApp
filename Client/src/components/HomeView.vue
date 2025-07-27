@@ -272,7 +272,7 @@ onMounted(async () => {
       return;
     }
 
-    const firstInstitutionId = banks.value[1].bankinfoid;
+    const firstInstitutionId = banks.value[0].bankinfoid;
     sessionStorage.setItem("selectedBank", firstInstitutionId.toString());
     sessionStorage.setItem("selectedBankName", banks.value[0].bankname);
 
