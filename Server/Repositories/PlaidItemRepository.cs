@@ -1,10 +1,10 @@
 
 using Server.Contexts;
-using Server.Models;
+using Shared.Models;
 
 using LanguageExt;
 using static LanguageExt.Prelude;
-using static Server.Models.ServiceResponses;
+using static Shared.Models.ServiceResponses;
 using Server.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;

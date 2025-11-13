@@ -2,7 +2,7 @@
 using System.Transactions;
 using Server.Contexts;
 using Server.Entities;
-using Server.Models;
+using Shared.Models;
 using Transaction = Server.Entities.Transaction;
 
 

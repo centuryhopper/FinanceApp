@@ -1,13 +1,13 @@
 using Server.Contexts;
-using Server.Models;
+using Shared.Models;
 
 using LanguageExt;
 using static LanguageExt.Prelude;
-using static Server.Models.ServiceResponses;
+using static Shared.Models.ServiceResponses;
 using Server.Utils;
 using Microsoft.EntityFrameworkCore;
 
-using LstOfSpendings = System.Collections.Generic.IEnumerable<Server.Models.CurrentMonthSpendingByCategoryDTO>;
+using LstOfSpendings = System.Collections.Generic.IEnumerable<Shared.Models.CurrentMonthSpendingByCategoryDTO>;
 using Server.Entities;
 using Newtonsoft.Json;
 

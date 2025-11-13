@@ -1,8 +1,8 @@
 
 using LanguageExt;
 using Server.Contexts;
-using Server.Models;
-using static Server.Models.ServiceResponses;
+using Shared.Models;
+using static Shared.Models.ServiceResponses;
 using LanguageExt;
 using static LanguageExt.Prelude;
 using Server.Utils;

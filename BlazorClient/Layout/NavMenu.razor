@@ -1,0 +1,173 @@
+﻿@using Microsoft.AspNetCore.Components.Routing
+
+@inject IAccountService accountService
+
+
+<nav class="@($"navbar navbar-expand-md {(IsDark ? "bg-dark" : "")} border-bottom border-secondary fixed-top shadow")">
+    <div class="container-fluid px-4 py-2 d-flex justify-content-between align-items-center">
+
+        <!-- Hamburger - mobile only -->
+        <button @onclick="() => IsMenuOpen = true"
+            class="@($"d-md-none btn btn-link text-{(IsDark ? "white" : "black")} p-0")" aria-label="Open menu">
+            <LucideIcon Name="Menu" Size="28" />
+        </button>
+
+        <!-- Mobile title -->
+        <div
+            class="@($"position-absolute top-50 start-50 translate-middle text-{(IsDark ? "white" : "black")} fw-bold text-uppercase text-center d-md-none")">
+            <NavLink class="@($"nav-link text-{(IsDark ? "white" : "black")} text-decoration-none")" href="/">
+                Personal Spending
+            </NavLink>
+        </div>
+
+        <!-- Desktop title -->
+        <div class="@($"d-none d-md-block text-{(IsDark ? "white" : "")} fw-bold text-uppercase")">
+            <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none")" href="/">
+                Personal Spending
+            </NavLink>
+        </div>
+
+        <!-- Desktop nav -->
+        <div class="d-none d-md-flex gap-4 fw-medium">
+            <AuthorizeView>
+                <Authorized>
+
+                    <span class="btn-dark p-3" style="border-radius: 10px">
+                        <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")" href=""
+                            Match="NavLinkMatch.All">
+                            Home
+                        </NavLink>
+                    </span>
+
+                    <span class="btn-dark p-3" style="border-radius: 10px">
+                        <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                            href="/dashboard" Match="NavLinkMatch.All">
+                            Dashboard
+                        </NavLink>
+                    </span>
+
+                    <span class="btn-dark p-3" style="border-radius: 10px">
+                        <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                            href="/budgets" Match="NavLinkMatch.All">
+                            Budgets
+                        </NavLink>
+                    </span>
+
+                    <span class="btn-dark p-3" style="border-radius: 10px">
+                        <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                            href="/settings" Match="NavLinkMatch.All">
+                            Settings
+                        </NavLink>
+                    </span>
+
+                    <span class="btn-dark p-3" style="border-radius: 10px" @onclick="Logout">
+                        <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                                Match="NavLinkMatch.All">
+                            Logout
+                        </NavLink>
+                    </span>
+
+                </Authorized>
+                <NotAuthorized>
+                    <span class="btn-dark p-3" style="border-radius: 10px">
+                        <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                            href="login" Match="NavLinkMatch.All">
+                            <i class="fa-solid fa-lock m-3"></i> Login
+                        </NavLink>
+                    </span>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <!-- Mobile menu overlay -->
+        @if (IsMenuOpen)
+        {
+            <div>
+                <div class="position-fixed top-0 start-0 w-100 h-100 bg-black bg-opacity-75"
+                    style="backdrop-filter: blur(4px)" @onclick="() => IsMenuOpen = false">
+                </div>
+
+                <aside
+                    class="@($"position-fixed top-0 start-0 {(IsDark ? "bg-dark text-white" : "bg-light text-black")} p-4 d-flex flex-column gap-4 h-100 shadow animate-slide-in")"
+                    style="width: 250px; z-index: 1050; overflow-y: auto">
+                    <button @onclick="() => IsMenuOpen = false"
+                        class="@($"btn btn-link text-{(IsDark ? "white" : "black")} align-self-end p-0")"
+                        aria-label="Close menu">
+                        <LucideIcon Name="X" Size="28" />
+                    </button>
+
+                    <AuthorizeView>
+                        <Authorized>
+
+                            <span class="btn-dark p-3" style="border-radius: 10px">
+                                <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                                    href="" Match="NavLinkMatch.All">
+                                    Home
+                                </NavLink>
+                            </span>
+
+                            <span class="btn-dark p-3" style="border-radius: 10px">
+                                <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                                    href="/dashboard" Match="NavLinkMatch.All">
+                                    Dashboard
+                                </NavLink>
+                            </span>
+
+                            <span class="btn-dark p-3" style="border-radius: 10px">
+                                <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                                    href="/budgets" Match="NavLinkMatch.All">
+                                    Budgets
+                                </NavLink>
+                            </span>
+
+                            <span class="btn-dark p-3" style="border-radius: 10px">
+                                <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                                    href="/settings" Match="NavLinkMatch.All">
+                                    Settings
+                                </NavLink>
+                            </span>
+
+                            <span class="btn-dark p-3" style="border-radius: 10px" @onclick="Logout">
+                                <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                                     Match="NavLinkMatch.All">
+                                    Logout
+                                </NavLink>
+                            </span>
+
+                        </Authorized>
+                        <NotAuthorized>
+                            <span class="btn-dark p-3" style="border-radius: 10px">
+                                <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
+                                    href="login" Match="NavLinkMatch.All">
+                                    <i class="fa-solid fa-lock m-3"></i> Login
+                                </NavLink>
+                            </span>
+                        </NotAuthorized>
+                    </AuthorizeView>
+
+                </aside>
+            </div>
+        }
+    </div>
+</nav>
+
+@code {
+    private bool IsMenuOpen { get; set; } = false;
+    private bool IsDark { get; set; } = false;
+    //private bool collapseNavMenu = true;
+
+    //private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    //private void ToggleNavMenu()
+    //{
+    // collapseNavMenu = !collapseNavMenu;
+    //}
+
+    private async Task Logout()
+    {
+        Console.WriteLine("logging out");
+        await localStorageService.ClearAsync();
+        await accountService.LogoutAsync();
+        NavigationManager.NavigateTo("", true);
+    }
+}

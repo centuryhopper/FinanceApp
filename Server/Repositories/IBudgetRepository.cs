@@ -1,8 +1,8 @@
 
 using LanguageExt;
-using Server.Models;
-using static Server.Models.ServiceResponses;
-using LstOfSpendings = System.Collections.Generic.IEnumerable<Server.Models.CurrentMonthSpendingByCategoryDTO>;
+using Shared.Models;
+using static Shared.Models.ServiceResponses;
+using LstOfSpendings = System.Collections.Generic.IEnumerable<Shared.Models.CurrentMonthSpendingByCategoryDTO>;
 
 
 namespace Server.Repositories;

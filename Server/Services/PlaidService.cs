@@ -7,9 +7,9 @@ using Going.Plaid.Link;
 using Going.Plaid.Sandbox;
 using Going.Plaid.Transactions;
 using Microsoft.Extensions.Options;
-using Server.Models;
+using Shared.Models;
 using Server.Utils;
-using static Server.Models.ServiceResponses;
+using static Shared.Models.ServiceResponses;
 
 namespace Server.Services;
 
@@ -107,7 +107,7 @@ public class PlaidService
             hasMore = response.HasMore;
         }
         while (hasMore);
-        
+
         var userId = int.Parse(httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
         // Optionally convert to a custom model or return raw

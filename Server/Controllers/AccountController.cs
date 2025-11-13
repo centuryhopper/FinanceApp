@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Server.Repositories;
-using Server.Models;
+using Shared.Models;
 
 namespace Server.Controllers;
 

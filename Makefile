@@ -1,22 +1,36 @@
-.PHONY: build clean copy all run
+.PHONY: clean run deploy
 
-# Composite target: run all in order
-all: clean build copy run
-
-# Clean the wwwroot directory
 clean:
-	rm -rf ./Server/wwwroot
-	rm -rf ./Client/dist
-
-# Build the Vue client app
-build:
-	cd ./Client && npm run build
-
-# Copy the built files into the server's wwwroot
-copy:
-	cp -r ./Client/dist ./Server/wwwroot
+	# Reset server wwwroot
+	rm -rf ./Server/wwwroot/*
+	rmdir ./Server/wwwroot/ || true
+	mkdir -p ./Server/wwwroot/
 
 run:
-	cd ./Server/ && /usr/bin/dotnet watch run
+	cd ./Server && \
+	( [ -d "./wwwroot" ] && rm -rf ./wwwroot || echo "already removed wwwroot/ from the Server directory" ) && \
+	( [ -d "./Models" ] && rm -rf ./Models || echo "already removed Models/ from the Server directory" ) && \
+	/home/leo_zhang/.dotnet/dotnet watch run
+
+deploy:
+	clean
+
+	# Publish and copy over published contents to server
+	cd ./Client && \
+	/home/leo_zhang/.dotnet/dotnet publish -o output && \
+	cp -r ./output/wwwroot/* ../Server/wwwroot/ && \
+	rm -rf ./output/* && \
+	rmdir ./output/ || true
+
+	# Copy shared models over to server
+	rm -rf ./Server/Models/
+	mkdir -p ./Server/Models
+	cp -rf ./Shared/Models/* ./Server/Models/
+
+	# Git commit and push
+	git add .
+	git commit -m "$(m)" || echo "Nothing to commit"
+	git push
+
 
 

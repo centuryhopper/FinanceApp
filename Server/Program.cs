@@ -1,5 +1,5 @@
 using Server.Services;
-using Server.Models;
+using Shared.Models;
 using Going.Plaid;
 using Microsoft.OpenApi.Models;
 using Server.Repositories;
@@ -75,6 +75,8 @@ builder.Services.AddPlaid(builder.Configuration.GetSection("Plaid"));
 // builder.Host.UseNLog();
 
 builder.Services.AddHttpClient();
+builder.Services.AddRazorPages();
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<PlaidService>();
@@ -198,11 +200,16 @@ if (app.Environment.IsDevelopment())
 // app.MapGet("/", () => "Plaid API is running");
 
 app.UseHttpsRedirection();
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
+app.UseRouting();
 app.UseCors(CLIENT);
 
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapRazorPages();
 
 app.MapControllers();
 //

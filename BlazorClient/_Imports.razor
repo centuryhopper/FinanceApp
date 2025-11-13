@@ -1,0 +1,35 @@
+﻿@using System.Net.Http
+@using System.Net.Http.Json
+@using Blazored.LocalStorage
+@using Blazored.SessionStorage
+@using HandyBlazorComponents.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.AspNetCore.Components.WebAssembly.Http
+@using Microsoft.JSInterop
+@using BlazorClient
+@using BlazorClient.Layout
+@using Shared.Models
+
+@using InfiniLore.Lucide
+@using BlazorClient.Interfaces
+
+@using HandyBlazorComponents.Components.Public
+@using HandyBlazorComponents.Components.Public.Modals
+@using static HandyBlazorComponents.Models.HandyServiceResponses
+
+
+
+
+
+@inject IJSRuntime jsRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ILocalStorageService localStorageService
+@inject IHttpClientFactory httpClientFactory
+@inject NavigationManager NavigationManager
+@inject ISessionStorageService sessionStorageService
+
+@inject HandyBlazorService HandyBlazorService

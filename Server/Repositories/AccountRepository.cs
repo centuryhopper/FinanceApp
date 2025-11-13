@@ -8,8 +8,8 @@ using NLog.Web.LayoutRenderers;
 
 using LanguageExt;
 using static LanguageExt.Prelude;
-using Server.Models;
-using static Server.Models.ServiceResponses;
+using Shared.Models;
+using static Shared.Models.ServiceResponses;
 using Server.Contexts;
 using Server.Utils;
 using Microsoft.IdentityModel.Tokens;

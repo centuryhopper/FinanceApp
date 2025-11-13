@@ -1,6 +1,6 @@
 
-using Server.Models;
-using static Server.Models.ServiceResponses;
+using Shared.Models;
+using static Shared.Models.ServiceResponses;
 
 namespace Server.Repositories;
 

@@ -1,0 +1,36 @@
+@page "/login"
+@using HandyBlazorComponents.Components.Public
+@using Microsoft.AspNetCore.Components.Forms
+@using static HandyBlazorComponents.Models.HandyServiceResponses
+@inject IAccountService accountService
+@inject NavigationManager NavigationManager
+@inject IHttpClientFactory httpClientFactory
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="container p-5" style="max-width: 40rem;">
+        <LoginComponent
+        NoticeText="@("Please log in to view your information. To request that your account be deleted, please email me.")"
+        RedirectLink="" CooldownSeconds="5" MaxAttempts="5" LoginCallBack="@(async (model) => {
+        //Console.WriteLine(model.Email);
+        //Console.WriteLine(model.Password);
+        //Console.WriteLine(model.RememberMe);
+        var response = await accountService.LoginAsync(new LoginDTO {
+            Email = model.Email,
+            Password = model.Password,
+            RememberMe = model.RememberMe,
+        });
+
+        return new HandyLoginResponse(Flag: response.Flag, Token: response.Token, Message: response.Message);
+        })" />
+    </div>
+</div>
+
+
+<div class="text-center">
+    <p>Don't have an account?
+        <a href="https://dotnetusermanagementsystem-production.up.railway.app/register" target="_blank"
+            rel="noopener noreferrer">
+            Register Here
+        </a>
+    </p>
+</div>
