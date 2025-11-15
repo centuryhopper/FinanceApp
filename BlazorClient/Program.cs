@@ -46,3 +46,4 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddLucideIcons();
 
 await builder.Build().RunAsync();
+

@@ -47,7 +47,7 @@ public class PlaidController : ControllerBase
     [Authorize]
     [EnableRateLimiting("TransactionsSyncing")]
     [HttpGet("sync-transactions")]
-    public async Task<IActionResult> SyncTransactions([FromQuery] string institutionName)
+    public async Task<IActionResult> SyncTransactions([FromQuery] string institutionName, [FromQuery] int bankInfoId)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
@@ -59,6 +59,15 @@ public class PlaidController : ControllerBase
             {
                 // use cursor in method call
                 var transactionSyncResponse = await plaidService.GetAllTransactionsSyncAsync(item.Accesstoken, item.TransactionsCursor);
+
+                // update transactions
+                transactionSyncResponse.StreamlinedTransactionDTOs = transactionSyncResponse.StreamlinedTransactionDTOs.Select(st =>
+                {
+                    // make sure the bankinfo id is set correctly
+                    st.BankInfoId = bankInfoId;
+                    st.EnvironmentType = configProvider.PlaidEnvironment;
+                    return st;
+                }).ToList();
 
                 // replace cursor with latest one
                 item.TransactionsCursor = transactionSyncResponse.Cursor;
@@ -92,15 +101,48 @@ public class PlaidController : ControllerBase
         return await result.Match<Task<IActionResult>>(
             Some: async (dto) =>
             {
-                return await Task.FromResult(Ok(new
+                // use cursor in method call
+                var transactionSyncResponse = await plaidService.GetAllTransactionsSyncAsync(dto.Accesstoken, dto.TransactionsCursor);
+
+                var bankInfoSum = authInfo.Accounts.Sum(acc => acc.Balances.Current.Value);
+                var bankInfo = new BankInfoDTO
                 {
-                    status = "already_linked",
+                    // bankinfoid doesn't matter. We just care about the userid and the bankname for upsert
+                    Userid = userId,
+                    Bankname = authInfo.Item.InstitutionName,
+                    Totalbankbalance = bankInfoSum,
+                };
+
+                var upsertBankInfoResponse = await bankRepository.UpsertBankInfoAsync(bankInfo).Match(Left: res => res, Right: res => res);
+                
+                // replace cursor with latest one
+                dto.TransactionsCursor = transactionSyncResponse.Cursor;
+                await plaidItemRepository.UpdatePlaidItemAsync(dto);
+
+                // update transactions
+                transactionSyncResponse.StreamlinedTransactionDTOs = transactionSyncResponse.StreamlinedTransactionDTOs.Select(st =>
+                {
+                    // make sure the bankinfo id is set correctly
+                    st.BankInfoId = upsertBankInfoResponse.Payload.Bankinfoid;
+                    st.EnvironmentType = configProvider.PlaidEnvironment;
+                    return st;
+                }).ToList();
+
+
+                // Store the list of queried transactions in streamlinedtransaction table
+                var storeTransactionsResponse = await streamlinedTransactionsRepository.StoreTransactionsAsync(transactionSyncResponse.StreamlinedTransactionDTOs).Match(Left: res => res, Right: res => res);
+
+
+                return await Task.FromResult(Ok(new BankExchangeResponse
+                {
+                    // Status = upsertBankInfoResponse.Message,
+                    Status = storeTransactionsResponse.Message,
+                    BankInfo = bankInfo,
                 }));
             },
             None: async () =>
             {
                 var transactionSyncResponse = await plaidService.GetAllTransactionsSyncAsync(exchangedResponse.AccessToken, null);
-
                 var bankInfoSum = authInfo.Accounts.Sum(acc => acc.Balances.Current.Value);
 
                 var bankInfo = new BankInfoDTO
@@ -111,11 +153,11 @@ public class PlaidController : ControllerBase
                 };
 
                 // Insert bank info into the database
-                var storeBankInfoResponse = await bankRepository.StoreBankInfoAsync(bankInfo).Match(Left: res => res, Right: res => res);
+                var storeBankInfoResponse = await bankRepository.UpsertBankInfoAsync(bankInfo).Match(Left: res => res, Right: res => res);
 
                 if (!storeBankInfoResponse.Flag)
                 {
-                    return BadRequest(new
+                    return BadRequest(new BankExchangeResponse
                     {
                         ErrorMessage = "Couldn't add bank to BankInfo database",
                     });
@@ -123,6 +165,7 @@ public class PlaidController : ControllerBase
 
                 transactionSyncResponse.StreamlinedTransactionDTOs = transactionSyncResponse.StreamlinedTransactionDTOs.Select(st =>
                 {
+                    // make sure the bankinfo id is set correctly
                     st.BankInfoId = storeBankInfoResponse.Payload.Bankinfoid;
                     st.EnvironmentType = configProvider.PlaidEnvironment;
                     return st;
@@ -144,11 +187,10 @@ public class PlaidController : ControllerBase
                     Right: _ => _
                 );
 
-                return Ok(new
+                return Ok(new BankExchangeResponse
                 {
-                    status = "newly_linked",
-                    bankInfo,
-                    name = authInfo.Item.InstitutionName,
+                    Status = "newly_linked",
+                    BankInfo = bankInfo,
                 });
             }
         );

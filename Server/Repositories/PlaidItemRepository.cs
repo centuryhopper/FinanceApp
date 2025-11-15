@@ -40,6 +40,7 @@ public class PlaidItemRepository(FinanceAppDbContext financeAppDbContext, Encryp
 
     public async Task<Option<PlaidItemDTO>> GetPlaidItemAsync(int userId, string institutionName)
     {
+        // var items = await financeAppDbContext.Plaiditems.ToListAsync();
         var entity = await financeAppDbContext.Plaiditems
         .Where(item =>
             item.Userid == userId && item.Institutionname.ToLower() == institutionName.ToLower()

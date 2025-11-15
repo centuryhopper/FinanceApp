@@ -139,20 +139,55 @@ public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbC
         {
             return new GeneralResponse(false, "StreamlinedTransactionDTO cannot be null");
         }
+
+        int bankInfoId = dtos.FirstOrDefault()?.BankInfoId ?? -1;
+        int userId = dtos.FirstOrDefault()?.UserId ?? -1;
+        if (userId == -1 || bankInfoId == -1)
+        {
+            return new GeneralResponse(false, "UserId or BankInfoId is missing in StreamlinedTransactionDTOs");
+        }
+
         var categories = await financeAppDbContext
         .Categories
         .AsNoTracking()
         .ToListAsync();
         var transactions = dtos.Select(o => o.ToEntity()).ToList();
+
+        var existingTransactions = await financeAppDbContext.Streamlinedtransactions
+            .Where(t => t.Bankinfoid == bankInfoId && t.Userid == userId)
+            .Select(t => new
+            {
+                t.Bankinfoid,
+                t.Amount,
+                t.Userid,
+                t.Name,
+                t.Date,
+            })
+            .ToListAsync();
+
+        var existing = new System.Collections.Generic.HashSet<(int? BankinfoId, decimal? Amount, int? UserId, string? Name, DateTime? Date)>(
+            existingTransactions.Select(e => (e.Bankinfoid, e.Amount, e.Userid, e.Name, e.Date))
+        );
+
+        // keep new transactions only
+        var newTransactions = transactions
+        .Where(t => !existing.Contains((t.Bankinfoid, t.Amount, t.Userid, t.Name, t.Date)))
+        .ToList();
+
+        if (newTransactions.Count == 0)
+        {
+            return new GeneralResponse(true, "No new transactions to add.");
+        }
+
         var dbTransaction = await financeAppDbContext.Database.BeginTransactionAsync();
 
         try
         {
             // store dto in db
-            await financeAppDbContext.Streamlinedtransactions.AddRangeAsync(transactions);
+            await financeAppDbContext.Streamlinedtransactions.AddRangeAsync(newTransactions);
             await financeAppDbContext.SaveChangesAsync();
 
-            foreach (var (ent, dto) in transactions.Zip(dtos, (e, d) => (e, d)))
+            foreach (var (ent, dto) in newTransactions.Zip(dtos, (e, d) => (e, d)))
             {
                 var categoryToLookFor = dto.Category.ToLower() switch
                 {
@@ -177,7 +212,7 @@ public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbC
 
             await dbTransaction.CommitAsync();
 
-            return new GeneralResponse(true, "Streamlined Transaction Added");
+            return new GeneralResponse(true, "Streamlined Transactions Added");
         }
         catch (Exception ex)
         {
@@ -188,4 +223,5 @@ public class StreamlinedtransactionsRepository(FinanceAppDbContext financeAppDbC
         }
 
     }).ToEither(ex => new GeneralResponse(false, ex.Message));
+
 }

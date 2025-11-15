@@ -4,7 +4,6 @@ using Shared.Models;
 using LanguageExt;
 using static LanguageExt.Prelude;
 using static Shared.Models.ServiceResponses;
-using Server.Services;
 using Server.Utils;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,13 +23,38 @@ public class BankRepository(FinanceAppDbContext financeAppDbContext) : IBankRepo
 
     }).ToEither(ex => new GeneralResponseWithPayload<BankInfoDTO?>(false, ex.Message, null));
 
-    public EitherAsync<GeneralResponseWithPayload<BankInfoDTO?>, GeneralResponseWithPayload<BankInfoDTO>> StoreBankInfoAsync(BankInfoDTO bankInfo) => TryAsync(async () =>
+    public async Task<GeneralResponseWithPayload<BankInfoDTO>> StoreBankInfoAsync(BankInfoDTO bankInfo)
     {
-        var bankEntity = bankInfo.ToEntity();
-        await financeAppDbContext.Bankinfos.AddAsync(bankEntity);
-        await financeAppDbContext.SaveChangesAsync();
+        try
+        {
+            var bankEntity = bankInfo.ToEntity();
+            await financeAppDbContext.Bankinfos.AddAsync(bankEntity);
+            await financeAppDbContext.SaveChangesAsync();
 
-        return new GeneralResponseWithPayload<BankInfoDTO>(true, "Bank info stored successfully.", bankEntity.ToDTO());
+            return new GeneralResponseWithPayload<BankInfoDTO>(true, "Bank info stored successfully.", bankEntity.ToDTO());
+        }
+        catch (System.Exception ex)
+        {
+            return new GeneralResponseWithPayload<BankInfoDTO>(false, ex.Message, null!);
+        }
+    }
+
+    public EitherAsync<GeneralResponseWithPayload<BankInfoDTO?>, GeneralResponseWithPayload<BankInfoDTO>> UpsertBankInfoAsync(BankInfoDTO bankInfo) => TryAsync(async () =>
+    {
+        var bankEntity = await financeAppDbContext.Bankinfos.FirstOrDefaultAsync(b => b.Userid == bankInfo.Userid && b.Bankname == bankInfo.Bankname);
+        if (bankEntity == null)
+        {
+            var response = await StoreBankInfoAsync(bankInfo);
+            return new GeneralResponseWithPayload<BankInfoDTO>(true, response.Message, response.Payload);
+        }
+        else
+        {
+            bankEntity.Totalbankbalance = bankInfo.Totalbankbalance;
+            await financeAppDbContext.SaveChangesAsync();
+
+            return new GeneralResponseWithPayload<BankInfoDTO>(true, "Bank info upserted successfully.", bankEntity.ToDTO());
+        }
+
     }).ToEither(ex => new GeneralResponseWithPayload<BankInfoDTO?>(false, ex.Message, null));
 
 }

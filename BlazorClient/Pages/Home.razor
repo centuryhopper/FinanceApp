@@ -1,10 +1,370 @@
 ﻿@page "/"
+@using BlazorClient.Providers
+@using BlazorClient.Utils
+@using HandyBlazorComponents
+@using HandyBlazorComponents.Models
+
+@* @attribute [Authorize] *@
 
 <PageTitle>Home</PageTitle>
 
-@* <div @onclick="@(() => Console.WriteLine("clicked"))">
-    <LucideIcon Name="Menu" Size="24" />
-</div>
-<LucideIcon Name="X" Size="24" />
 
-<LucideIcon Name="Circle" Size="40" /> *@
+<AuthorizeView>
+    <Authorized>
+        <div class="container m-5 p-5">
+            <h1 class="fw-bold fs-3 text-center m-3">Welcome to My Finance App</h1>
+
+            <div class="d-flex justify-content-evenly">
+                <button class="btn btn-primary mb-4" @onclick="LinkPlaid">
+                    Connect a bank account
+                </button>
+
+                <button class="btn btn-primary mb-4" @onclick="SyncTransactions">
+                    Sync Transactions
+                </button>
+            </div>
+
+            <div class="row g-4">
+                <!-- LEFT COLUMN / BANKS -->
+                <div class="col-md-6">
+                    <div class="card p-3 shadow-sm w-100 h-100 d-flex flex-column" style="max-width: 300px">
+                        <h5 class="text-center">My Accounts</h5>
+
+                        @if (!BanksLoaded)
+                        {
+                            <div class="d-flex justify-content-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        }
+                        else if (Banks.Count == 0)
+                        {
+                            <p>No bank accounts were added yet</p>
+                        }
+                        else
+                        {
+                            <ul class="list-unstyled mb-0 flex-grow-1 overflow-auto">
+                                @foreach (var bank in Banks)
+                                {
+                                    <li class="d-flex justify-content-between mb-1 bank-selection"
+                                        @onclick="() => OnBankSelection(bank.Bankinfoid, bank.Bankname)">
+                                        <span>@bank.Bankname</span>
+                                        <strong>$@bank.Totalbankbalance</strong>
+                                    </li>
+                                }
+                            </ul>
+
+                            <hr class="my-2" />
+
+                            <div class="d-flex justify-content-between mt-auto pt-2">
+                                <span>Total</span>
+                                <strong>$@BalanceTotal</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN / TRANSACTIONS -->
+                <div class="col-md-6">
+                    <div class="card p-3 shadow-sm w-100 h-100" style="max-width: 500px">
+                        <h5 class="mb-3 fw-semibold text-center">Most recent transactions</h5>
+
+                        @if (!TransactionsLoaded)
+                        {
+                            <div class="d-flex justify-content-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        }
+                        else if (RecentTransactions.Count == 0)
+                        {
+                            <p>No transactions were saved yet</p>
+                        }
+                        else
+                        {
+                            <ul class="list-unstyled">
+                                @foreach (var transaction in RecentTransactions)
+                                {
+                                    <li class="d-flex align-items-center mb-2 gap-2">
+                                        <div class="text-nowrap text-center" style="width: 90px">
+                                            @transaction.Date
+                                        </div>
+                                        <div class="@GetAmountClass(transaction.Amount)" style="width: 90px">
+                                            @(transaction.Amount > 0 ? "+" : "-")$@Math.Abs(transaction.Amount)
+                                        </div>
+
+                                        <div class="flex-grow-1 text-center">
+                                            @transaction.Name
+                                        </div>
+
+                                        <span class="badge bg-success-subtle text-success rounded-pill text-center">
+                                            @transaction.Category
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="d-flex justify-content-center align-items-center vh-100">
+            <div class="container m-5 p-5">
+                <h1 class="fw-bold fs-3 text-center">Please Sign in to continue</h1>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+<StackedHandyToast @ref="stackedHandyToast" Title="Success" Message="Transactions Synced!"
+    Position="HandyToastPosition.CENTER_ALIGN" />
+
+
+
+
+
+<style>
+    .bank-selection {
+        cursor: pointer;
+    }
+
+    .bank-selection:hover {
+        background-image: linear-gradient(135deg, #6e8efb, #a777e3);
+    }
+</style>
+
+@code {
+
+    private StackedHandyToast stackedHandyToast = default!;
+
+
+    private List<BankInfoDTO> Banks = new();
+    private bool BanksLoaded = false;
+
+    private List<StreamlinedTransactionDTO> RecentTransactions = new();
+    private bool TransactionsLoaded = false;
+
+    private HttpClient httpClient => httpClientFactory.CreateClient(Constants.HTTP_CLIENT);
+
+    private decimal BalanceTotal =>
+    Banks.Sum(x => x.Totalbankbalance);
+
+
+    // -------- Lifecycle --------
+    protected override async Task OnInitializedAsync()
+    {
+        // await SwalOk("Success!", $"Test!");
+
+        var authState = await ((ApiAuthenticationStateProvider)AuthenticationStateProvider).GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            await LoadBanks();
+        }
+    }
+
+
+    // -------- Methods --------
+    private async Task LoadBanks()
+    {
+        try
+        {
+            var response = await httpClient.GetAsync("api/Bank/get-banks");
+            if (!response.IsSuccessStatusCode)
+            {
+                BanksLoaded = true;
+                return;
+            }
+
+            Banks = await response.Content.ReadFromJsonAsync<List<BankInfoDTO>>() ?? [];
+            BanksLoaded = true;
+
+            if (Banks.Count == 0)
+            {
+                TransactionsLoaded = true;
+                return;
+            }
+
+            // Select first bank automatically
+            var firstId = Banks[0].Bankinfoid;
+            await sessionStorageService.SetItemAsync("selectedBank", firstId);
+            await sessionStorageService.SetItemAsync("selectedBankName", Banks[0].Bankname);
+
+            await LoadTransactions(firstId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error: " + ex);
+        }
+    }
+
+    private async Task LoadTransactions(int bankId)
+    {
+        TransactionsLoaded = false;
+
+        var resp = await httpClient.GetAsync($"api/Bank/recent-transactions/{bankId}");
+        if (resp.IsSuccessStatusCode)
+        {
+            RecentTransactions = await resp.Content.ReadFromJsonAsync<List<StreamlinedTransactionDTO>>() ?? [];
+        }
+
+        TransactionsLoaded = true;
+        StateHasChanged();
+    }
+
+    private async Task OnBankSelection(int bankInfoId, string bankName)
+    {
+        var current = await sessionStorageService.GetItemAsStringAsync("selectedBank");
+
+        if (current == bankInfoId.ToString())
+        {
+            return;
+        }
+
+        await sessionStorageService.SetItemAsync("selectedBank", bankInfoId);
+        await sessionStorageService.SetItemAsync("selectedBankName", bankName);
+
+        await LoadTransactions(bankInfoId);
+    }
+
+    private async Task SyncTransactions()
+    {
+        var selectedBankName = await sessionStorageService.GetItemAsync<string>("selectedBankName");
+        //Console.WriteLine(selectedBankName);
+        if (selectedBankName is null)
+        {
+            return;
+        }
+
+        var bankInfoId = await sessionStorageService.GetItemAsync<int?>("selectedBank");
+        //Console.WriteLine(selectedBankName);
+        if (bankInfoId is null)
+        {
+            return;
+        }
+
+        var lastSavedStamp = await localStorageService.GetItemAsync<long?>("lastSaved");
+        long? lastSaved = lastSavedStamp is null ? 0 : lastSavedStamp;
+
+        long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var hoursPassed = (now - lastSaved) / (1000.0 * 60 * 60);
+
+        if (hoursPassed < 24)
+        {
+            Console.WriteLine($"Only {hoursPassed:F2} hours have passed. You can sync transactions once every 24 hours.");
+            return;
+        }
+
+        var result = await httpClient.GetAsync($"api/Plaid/sync-transactions?institutionName={selectedBankName}&bankInfoId={bankInfoId}");
+
+        if (result.IsSuccessStatusCode)
+        {
+            _ = stackedHandyToast.ShowToastAsync("Success!", "Transactions Synced!", HandyToastType.SUCCESS);
+        }
+        else
+        {
+            await SwalError("Error!", "Could not sync transactions. Please try again later.");
+            return;
+        }
+
+        await localStorageService.SetItemAsync<long>("lastSaved", now);
+    }
+
+    private string GetAmountClass(decimal amount) =>
+    amount < 0
+    ? "fw-semibold badge bg-danger-subtle text-danger rounded-pill text-center"
+    : "fw-semibold badge bg-success-subtle text-success rounded-pill text-center";
+
+
+    private async Task LinkPlaid()
+    {
+        var jwt = await localStorageService.GetItemAsStringAsync(JwtConfig.JWT_TOKEN_NAME);
+        jwt ??= await sessionStorageService.GetItemAsStringAsync(JwtConfig.JWT_TOKEN_NAME);
+
+        if (string.IsNullOrWhiteSpace(jwt))
+        {
+            _ = stackedHandyToast.ShowToastAsync("Error!", "JWT token not found", HandyToastType.SUCCESS);
+            return;
+        }
+
+        var authState = await ((ApiAuthenticationStateProvider)AuthenticationStateProvider).GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst("sub")?.Value;
+
+        var response = await httpClient.GetAsync($"api/Plaid/get-link-token/{userId}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Could not fetch link token");
+            return;
+        }
+
+        var json = await response.Content.ReadFromJsonAsync<PlaidLinkResponse>();
+        var linkToken = json!.link_token;
+
+        // Console.WriteLine("Fetched link token: " + linkToken);
+
+        // JS interop call – Plaid UI opens
+        await jsRuntime.InvokeVoidAsync(
+        "PLAID_FUNCTIONS.openPlaid",
+        linkToken,
+        DotNetObjectReference.Create(this)
+        );
+    }
+
+    [JSInvokable]
+    public async Task PlaidSuccess(string publicToken)
+    {
+        // Console.WriteLine("plaid success!");
+        var response = await httpClient.PostAsJsonAsync(
+        "api/Plaid/exchange-public-token",
+        new { PublicToken = publicToken }
+        );
+
+        var result = await response.Content.ReadFromJsonAsync<BankExchangeResponse>();
+
+        await SwalOk("Success!", $"Link to {result?.BankInfo.Bankname} successful!");
+
+        await JSReload();
+    }
+
+    private Task JSReload() => jsRuntime.InvokeVoidAsync("location.reload").AsTask();
+
+    private async Task SwalOk(string title, string text)
+    {
+        await jsRuntime.InvokeVoidAsync("Swal.fire", new
+        {
+            title,
+            text,
+            icon = "success",
+            confirmButtonText = "OK"
+        });
+    }
+
+    private async Task SwalError(string title, string text)
+    {
+        await jsRuntime.InvokeVoidAsync("Swal.fire", new
+        {
+            title,
+            text,
+            icon = "error",
+            confirmButtonText = "OK"
+        });
+    }
+
+    [JSInvokable]
+    public async Task PlaidExit()
+    {
+        Console.WriteLine("Plaid exited.");
+    }
+
+    private class PlaidLinkResponse
+    {
+        public string link_token { get; set; } = "";
+    }
+}
