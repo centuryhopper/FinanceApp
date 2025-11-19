@@ -1,0 +1,18 @@
+
+<footer class="@FooterClass footer-fixed text-center py-3 mt-5">
+    <div class="container">
+        <small>
+            &copy; @year My Finance App. All rights reserved.
+        </small>
+    </div>
+</footer>
+
+@code {
+    private int year = DateTime.Now.Year;
+    private bool IsDark = false;
+
+    private string FooterClass =>
+        IsDark 
+            ? "bg-dark bg-gradient"
+            : "bg-light bg-gradient-light";
+}

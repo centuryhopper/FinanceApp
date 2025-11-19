@@ -2,6 +2,12 @@
 
 @inject IAccountService accountService
 
+<style>
+    nav {
+        background-color: white;
+    }
+</style>
+
 
 <nav class="@($"navbar navbar-expand-md {(IsDark ? "bg-dark" : "")} border-bottom border-secondary fixed-top shadow")">
     <div class="container-fluid px-4 py-2 d-flex justify-content-between align-items-center">
@@ -60,13 +66,12 @@
                         </NavLink>
                     </span>
 
-                    <span class="btn-dark p-3" style="border-radius: 10px" @onclick="Logout">
+                    <span class="btn-dark p-3" style="border-radius: 10px; cursor: pointer;" @onclick="Logout">
                         <NavLink class="@($"nav-link text-{(IsDark ? "white" : "")} text-decoration-none fs-5")"
                                 Match="NavLinkMatch.All">
                             Logout
                         </NavLink>
                     </span>
-
                 </Authorized>
                 <NotAuthorized>
                     <span class="btn-dark p-3" style="border-radius: 10px">

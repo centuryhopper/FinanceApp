@@ -1,0 +1,169 @@
+@page "/dashboard"
+@using BlazorClient.Components
+
+
+
+<div>
+    @if (!DidSelectBank)
+    {
+        <div class="container m-5 p-5">
+            <h1 class="text-center">
+                Please select a bank from the home page to visualize its spendings.
+            </h1>
+        </div>
+    }
+    else
+    {
+        <div class="container m-5 p-5">
+            <h1 class="fw-bold fs-3 mt-5 mb-3 text-center">Dashboard</h1>
+
+            <div class="row m-3">
+                <div class="col-lg-3"></div>
+                <div class="col-lg-6">
+                    <DoughnutChart CategoryTotals="CategoryTotals" />
+                </div>
+                <div class="col-lg-3"></div>
+            </div>
+
+            <div class="row m-3">
+                <div class="col-lg-3"></div>
+                <div class="col-lg-6">
+                    <BarChart CategoryTotals="CategoryTotals" />
+                </div>
+                <div class="col-lg-3"></div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-3"></div>
+                <div class="col-lg-6">
+                    <HorizontalStackedChart MonthlySpending="MonthlySpending" />
+                </div>
+                <div class="col-lg-3"></div>
+            </div>
+
+            @* <div class="m-3">
+                <TransactionsGrid Transactions="Transactions" />
+            </div> *@
+        </div>
+    }
+</div>
+
+@code {
+    // -----------------------------
+    // 🔹 State
+    // -----------------------------
+    private bool DidSelectBank;
+    private int? SelectedBankId;
+    private string? SelectedBankName;
+
+    private List<StreamlinedTransactionDTO> Transactions = new();
+    private Dictionary<string, decimal> CategoryTotals = new();
+    private List<MonthlySpendingDTO> MonthlySpending = new();
+
+    // JWT token (modify according to your auth service)
+    private string? JwtToken;
+    private HttpClient httpClient;
+
+    // -----------------------------
+    // 🔹 Lifecycle
+    // -----------------------------
+    protected override async Task OnInitializedAsync()
+    {
+        httpClient = httpClientFactory.CreateClient(Constants.HTTP_CLIENT);
+        SelectedBankId = await sessionStorageService.GetItemAsync<int?>("selectedBank");
+        SelectedBankName = await sessionStorageService.GetItemAsync<string?>("selectedBankName");
+
+        //Console.WriteLine(SelectedBankId);
+        //Console.WriteLine(SelectedBankName);
+
+        JwtToken = await sessionStorageService.GetItemAsync<string?>(JwtConfig.JWT_TOKEN_NAME)
+        ?? await localStorageService.GetItemAsync<string?>(JwtConfig.JWT_TOKEN_NAME);
+
+        DidSelectBank = SelectedBankId.HasValue;
+
+        if (!DidSelectBank || string.IsNullOrEmpty(SelectedBankName))
+        {
+            return;
+        }
+
+        await LoadTransactionsAsync();
+        ComputeCategoryTotals();
+
+        await LoadMonthlySpendingAsync();
+    }
+
+    // -----------------------------
+    // 🔹 Load Transactions
+    // -----------------------------
+    private async Task LoadTransactionsAsync()
+    {
+        var url = $"api/Dashboard/transactions/{SelectedBankId}";
+        var response = await httpClient.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+
+        Transactions = await response.Content.ReadFromJsonAsync<List<StreamlinedTransactionDTO>>() ?? new();
+    }
+
+    // -----------------------------
+    // 🔹 Compute Category Totals
+    // -----------------------------
+    /// <summary>
+    /// This method is essentially equivalent to the SQL query:
+    /// SELECT SUM(amount) AS total_income
+    /// FROM streamlinedtransactions
+    /// WHERE bankinfoid = [some id value] AND amount > 0;
+    /// </summary>
+    private void ComputeCategoryTotals()
+    {
+        CategoryTotals = new();
+
+        if (Transactions.Count == 0)
+        {
+            return;
+        }
+
+        var grouped = Transactions
+        .Where(t => !string.IsNullOrWhiteSpace(t.Category))
+        .GroupBy(t => t.Category);
+
+        foreach (var group in grouped)
+        {
+            decimal sum = 0;
+
+            foreach (var t in group)
+            {
+                var amount = t.Amount;
+
+                // Special CIT bank rule
+                if (SelectedBankName!.ToLower().Contains("cit bank"))
+                {
+                    amount = amount > 0 ? -amount : Math.Abs(amount);
+                }
+
+                sum += amount;
+            }
+
+            sum = Math.Max(0, sum); // no negatives
+            if (sum > 0)
+            {
+                CategoryTotals[group.Key] = Math.Round(sum, 2);
+            }
+        }
+    }
+
+    // -----------------------------
+    // 🔹 Load Monthly Spending
+    // -----------------------------
+    private async Task LoadMonthlySpendingAsync()
+    {
+        var url = $"api/Dashboard/monthlySpendings/{SelectedBankId}";
+
+        var response = await httpClient.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+
+        var items = await response.Content.ReadFromJsonAsync<List<MonthlySpendingDTO>>() ?? new();
+
+        MonthlySpending = items.Where(x => x.CategorySum.Total > 0).ToList();
+    }
+}
+

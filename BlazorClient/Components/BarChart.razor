@@ -1,0 +1,59 @@
+
+<canvas @ref="CanvasRef" width="600" height="400"></canvas>
+
+@code {
+    [Parameter]
+    public Dictionary<string, decimal> CategoryTotals { get; set; } = new();
+
+    private ElementReference CanvasRef;
+    private IJSObjectReference? _chartInstance;
+
+    protected override void OnInitialized()
+    {
+        foreach (var kvp in CategoryTotals)
+        {
+            Console.WriteLine($"Category: {kvp.Key}, Total: {kvp.Value}");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Console.WriteLine("rendering chart");
+            await RenderChart();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_chartInstance != null)
+        {
+            // Chart exists → re-render it
+            await RenderChart();
+        }
+    }
+
+    private async Task RenderChart()
+    {
+        // Destroy old chart instance
+        if (_chartInstance != null)
+        {
+            await _chartInstance.InvokeVoidAsync("destroy");
+            _chartInstance = null;
+        }
+
+        var labels = CategoryTotals.Keys.ToList();
+        var values = CategoryTotals.Values.Select(v => (double)v).ToList();
+
+        // Call global JS function
+        _chartInstance = await jsRuntime.InvokeAsync<IJSObjectReference>(
+            "CHARTJS.createBarChart",
+            CanvasRef,
+            labels,
+            values
+        );
+    }
+}
+
+

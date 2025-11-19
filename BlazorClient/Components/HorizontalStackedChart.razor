@@ -1,0 +1,73 @@
+<canvas @ref="CanvasRef" width="800" height="500"></canvas>
+
+@code {
+    [Parameter]
+    public List<MonthlySpendingDTO> MonthlySpending { get; set; } = new();
+
+    private ElementReference CanvasRef;
+    private IJSObjectReference? _chartInstance;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RenderChart();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_chartInstance != null)
+        {
+            await RenderChart();
+        }
+    }
+
+    private async Task RenderChart()
+    {
+        // Destroy old chart instance
+        if (_chartInstance != null)
+        {
+            await _chartInstance.InvokeVoidAsync("destroy");
+            _chartInstance = null;
+        }
+
+        // Build labels (months) and categories
+        var monthLabels = MonthlySpending.Select(ms => ms.Month).Distinct().OrderByDescending(m => m).ToList();
+        var categories = MonthlySpending.Select(ms => ms.CategorySum.Category).Distinct().ToList();
+
+        // Build datasets
+        var datasets = categories.Select(category =>
+        {
+            var data = monthLabels.Select(month =>
+            {
+                var item = MonthlySpending.FirstOrDefault(ms => ms.Month == month && ms.CategorySum.Category == category);
+                return item?.CategorySum.Total ?? 0;
+            }).ToList();
+
+            return new
+            {
+                label = category,
+                data,
+                backgroundColor = RandomHexColor()
+            };
+        }).ToList();
+
+        var maxValue = MonthlySpending.Any() ? MonthlySpending.Max(ms => ms.CategorySum.Total) : 0;
+
+        // Call global JS function
+        _chartInstance = await jsRuntime.InvokeAsync<IJSObjectReference>(
+            "CHARTJS.createHorizontalStackedChart",
+            CanvasRef,
+            monthLabels,
+            datasets,
+            maxValue
+        );
+    }
+
+    private static string RandomHexColor()
+    {
+        var random = new Random();
+        return $"#{random.Next(0x1000000):X6}";
+    }
+}

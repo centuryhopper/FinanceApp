@@ -1,16 +1,19 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <NavMenu />
-    @* <div class="sidebar">
-    </div> *@
 
-    <main>
-        <div class="top-row px-4">
-            @* <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a> *@
-        </div>
+<header>
+    <NavMenu />
+</header>
+<div class="page">
+    @* this bootstrap class combo will help push the footer to stick to the bottom of the page *@
+    <main class="d-flex flex-column min-vh-100">
+        @* <div class="top-row px-4"> *@
+            @* <a href="https://learn.microsoft.com/aspnet/core/"/ target="_blank">About</a> *@
+        @* </div> *@
 
         <article class="content px-4 app-content">
             @Body
         </article>
     </main>
+
+    <Footer />
 </div>

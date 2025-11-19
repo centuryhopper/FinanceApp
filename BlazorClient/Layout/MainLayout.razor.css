@@ -1,7 +1,22 @@
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+header {
+    position: absolute;
+    top: 0;
+    z-index: 1000;
+}
+
 .page {
+    z-index: 0;
+    margin-top: 80px;
     position: relative;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
 }
 
 main {
@@ -12,7 +27,7 @@ main {
     background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
 } */
 
-.top-row {
+/* .top-row {
     background-color: #f7f7f7;
     border-bottom: 1px solid #d6d5d5;
     justify-content: flex-end;
@@ -44,11 +59,17 @@ main {
     .top-row ::deep a, .top-row ::deep .btn-link {
         margin-left: 0;
     }
-}
+} */
 
 @media (min-width: 641px) {
     .page {
         flex-direction: row;
+    }
+
+    .layout-body {
+        display: flex;
+        flex-direction: row;
+        flex: 1;
     }
 
     .sidebar {
@@ -58,13 +79,13 @@ main {
         top: 0;
     }
 
-    .top-row {
+    /* .top-row {
         position: sticky;
         top: 0;
         z-index: 1;
-    }
+    } */
 
-    .top-row.auth ::deep a:first-child {
+    /* .top-row.auth ::deep a:first-child {
         flex: 1;
         text-align: right;
         width: 0;
@@ -73,5 +94,5 @@ main {
     .top-row, article {
         padding-left: 2rem !important;
         padding-right: 1.5rem !important;
-    }
+    } */
 }

@@ -1,0 +1,65 @@
+@page "/settings"
+
+@* <div class="container m-5 p-5"> *@
+    @* <h1 class="fw-bold fs-3 mt-5 mb-3 text-center">Settings</h1> *@
+    <div class="d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card bg-gradient">
+            <div class="card-body">
+                <div class="card-text">
+                    <ul class="list-group" style="width: 15rem;">
+                        @foreach (var sel in Selections)
+                        {
+                            <li style="cursor: pointer" class="list-group-item custom-setting-item d-flex justify-content-between align-items-center"
+                                @onclick="sel.Callback">
+                                @sel.Name
+                                <span class="arrow">&rarr;</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+@* </div> *@
+@code {
+    private List<SettingItem> Selections = new();
+
+    protected override void OnInitialized()
+    {
+        Selections =
+        [
+            new SettingItem("App Appearance", ToggleAppearance),
+            new SettingItem("Toggle Two-Factor Authentication", Toggle2FA)
+        ];
+    }
+
+    private void ToggleAppearance()
+    {
+        // Console.WriteLine("toggle app appearance!");
+        StateHasChanged();
+    }
+
+    private async Task Toggle2FA()
+    {
+        //await Alerts.ConfirmationPopup(
+        //    "Notice",
+        //    "2FA is currently disabled. Would you like to enable it?",
+        //    async () =>
+        //    {
+        //        await Task.Delay(1);
+        //        Console.WriteLine("enabled 2fa!");
+        //    },
+        //    async () =>
+        //    {
+        //        await Task.Delay(1);
+        //        Console.WriteLine("cancelled enabling 2fa!");
+        //    }
+        //);
+    }
+
+    public record SettingItem(string Name, Func<Task> Callback)
+    {
+        public SettingItem(string name, Action callback)
+            : this(name, () => { callback(); return Task.CompletedTask; }) { }
+    }
+}
