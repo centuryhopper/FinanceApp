@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Shared.Models;
 using Server.Repositories;
 using Server.Utils;
+using BlazorClient.Pages;
 
 
 namespace Server.Controllers
@@ -39,9 +40,9 @@ namespace Server.Controllers
                 {
                     ErrorMessage = res.Message,
                 }),
-                Right: res => Ok(new
+                Right: res => Ok(new BudgetsPayloadDTO
                 {
-                    res.Payload
+                    Payload = res.Payload.ToArray(),
                 })
             );
         }

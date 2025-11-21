@@ -1,0 +1,125 @@
+@page "/budgets"
+@using BlazorClient.Components
+
+
+<div class="container m-5 p-5">
+    <h1 class="fw-bold fs-3 mt-5 mb-3 text-center">
+        Budget for @CurrentMonthString
+    </h1>
+
+    @if (!SpendingsLoaded)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (Spendings.Count == 0)
+    {
+        <div class="m-3">No budget logistics to show</div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-center">
+            <div class="card @(IsDark ? "bg-dark bg-gradient text-light" : "bg-gradient")">
+                <div class="card-body">
+                    <div class="card-text">
+                        @foreach (var spending in Spendings)
+                        {
+                            <BudgetsBar Id="@spending.Id"
+                                        Category="@spending.Category"
+                                        Spent="@spending.Spent"
+                                        Budget="@spending.CategoryBudget"
+                                        BudgetLimitChanged="OnBudgetLimitChanged" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+
+    private readonly string[] MonthNames = new[]
+    {
+        "January","February","March","April","May","June","July","August","September","October","November","December"
+    };
+
+    private string CurrentMonthString => MonthNames[DateTime.UtcNow.Month - 1];
+
+    private bool IsDark { get; set; } = false; // If you have a theme store, wire this up
+
+    private string? SelectedBankId;
+    private bool SpendingsLoaded = false;
+
+    private List<CurrentMonthSpendingByCategoryDTO> Spendings = [];
+    private HttpClient httpClient;
+
+    protected override async Task OnInitializedAsync()
+    {
+        httpClient = httpClientFactory.CreateClient(Constants.HTTP_CLIENT);
+        // read selectedBank from sessionStorage like your Vue code
+        SelectedBankId = await sessionStorageService.GetItemAsync<string>("selectedBank");
+
+        if (string.IsNullOrWhiteSpace(SelectedBankId))
+        {
+            // nothing selected
+            Console.WriteLine("No banks were selected");
+            return;
+        }
+
+        // Initialize budgets
+        var initResp = await httpClient.GetAsync($"api/Budgets/init-budgets/{int.Parse(SelectedBankId)}");
+        if (!initResp.IsSuccessStatusCode)
+        {
+            Console.WriteLine("couldn't initialize budgets properly");
+            return;
+        }
+
+        // Retrieve current month spendings
+
+        var dataResp = await httpClient.GetAsync($"api/Budgets/current-month-spending-by-category/{int.Parse(SelectedBankId)}");
+
+        if (!dataResp.IsSuccessStatusCode)
+        {
+            Console.WriteLine("couldn't retrieve category spendings for the current month");
+            return;
+        }
+
+        var payload = await dataResp.Content.ReadFromJsonAsync<BudgetsPayloadDTO>();
+
+        Spendings = payload.Payload.ToList();
+        SpendingsLoaded = true;
+    }
+
+    // Called when child emits a budget change
+    private async Task OnBudgetLimitChanged((int id, decimal newLimit) args)
+    {
+        var (id, newLimit) = args;
+        var item = Spendings.FirstOrDefault(s => s.Id == id);
+        if (item == null)
+        {
+            Console.WriteLine("budget not found :/");
+            return;
+        }
+
+        var resp = await httpClient.PatchAsync($"api/Budgets/edit-budgetcap?categoryId={item.CategoryId}&bankInfoId={int.Parse(SelectedBankId)}&budgetCap={newLimit}", null);
+
+        if (resp.IsSuccessStatusCode)
+        {
+            // Update local model
+            var idx = Spendings.FindIndex(s => s.Id == id);
+            if (idx >= 0)
+            {
+                Spendings[idx].CategoryBudget = (int) newLimit;
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            Console.WriteLine($"Failed to update budget cap: {resp.StatusCode}");
+        }
+    }
+}

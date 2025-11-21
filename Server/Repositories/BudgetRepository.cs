@@ -147,7 +147,6 @@ public class BudgetRepository(FinanceAppDbContext financeAppDbContext) : IBudget
     */
     public EitherAsync<GeneralResponseWithPayload<LstOfSpendings>, GeneralResponseWithPayload<LstOfSpendings>> GetCurrentMonthSpendingByCategoriesAsync(int bankInfoId, int userId) => TryAsync(async () =>
     {
-
         var bankInfo = await financeAppDbContext.Bankinfos
             .FirstOrDefaultAsync(b => b.Bankinfoid == bankInfoId && b.Userid == userId);
 

@@ -1,0 +1,87 @@
+
+
+<div class="@ContainerClasses" style="width: 30rem;">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="fw-semibold">@Category</span>
+        <span class="fw-bold">Total spent: $@Spent.ToString("F2")</span>
+    </div>
+
+    <div class="progress" style="height: 8px;">
+        <div class="progress-bar bg-primary"
+             role="progressbar"
+             style="width:@Progress;"
+             aria-valuenow="@Spent"
+             aria-valuemin="0"
+             aria-valuemax="@Budget">
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="small">$0</span>
+
+        @if (BudgetLimitClicked)
+        {
+            <span class="text-end m-1">
+                <input  class="form-control w-50 d-inline"
+                        @bind="BudgetInput"
+                        @onblur="OnBudgetBlur" />
+            </span>
+        }
+        else
+        {
+            <span class="small text-end m-1 text-@BudgetThresholdColor"
+                  style="cursor: pointer;"
+                  @onclick="ToggleBudgetLimit">
+                Limit: $@Budget.ToString("F2")
+            </span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public string Category { get; set; } = "";
+    [Parameter] public decimal Spent { get; set; }
+    [Parameter] public decimal Budget { get; set; }
+
+    [Parameter] public EventCallback<(int id, decimal newLimit)> BudgetLimitChanged { get; set; }
+
+    public bool IsDark { get; set; } = false;
+
+    private bool BudgetLimitClicked { get; set; } = false;
+
+    private string BudgetInput = "";
+
+    protected override void OnParametersSet()
+    {
+        BudgetInput = $"{Budget:F2}";
+    }
+
+    protected string ContainerClasses =>
+        $"m-2 p-3 rounded shadow-sm {(IsDark ? "bg-dark text-light" : "")}";
+
+    protected string Progress =>
+        Budget > 0 ? $"{Math.Min((Spent / Budget) * 100, 100):F0}%" : "0%";
+
+    protected string BudgetThresholdColor =>
+        Spent <= Budget ? "" : "danger";
+
+    protected void ToggleBudgetLimit()
+    {
+        BudgetLimitClicked = true;
+    }
+
+    private async Task OnBudgetBlur()
+    {
+        var cleaned = new string(BudgetInput.Where(c => char.IsDigit(c) || c == '.').ToArray());
+
+        if (!decimal.TryParse(cleaned, out var newLimit))
+            newLimit = Budget;
+
+        // Send update to parent
+        if (BudgetLimitChanged.HasDelegate)
+            await BudgetLimitChanged.InvokeAsync((Id, newLimit));
+
+        BudgetLimitClicked = false;
+    }
+}
