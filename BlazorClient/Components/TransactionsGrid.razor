@@ -1,0 +1,113 @@
+@using BlazorClient.Models
+@using Client.Services
+@using HandyBlazorComponents.Models
+
+<div class="m-5">
+    <div>Dynamic HandyGrid demo:</div>
+    @if (doneLoadingLst)
+    {
+        <CascadingValue Name="HandyGridState" Value="handyGridState" IsFixed="true">
+            <DynamicHandyGrid TItem="StreamlinedTransactionDTO" TEntity="TransactionsEntity" Items="Items" />
+        </CascadingValue>
+    }
+    else
+    {
+        <span class="spinner-border spinner-border-sm mr-1"></span>
+    }
+</div>
+
+
+<NotificationModal @ref="notificationModal" />
+<ConfirmModal @ref="confirmModal" Title="Warning"
+    BodyText="Are you sure you want to delete this record? THIS ACTION IS IRREVERSIBLE!" />
+<StackedHandyToast @ref="stackedHandyToast" Title="Success" Message="Your operation completed successfully."
+    ToastType="HandyToastType.SUCCESS" Duration="5" Position="HandyToastPosition.CENTER_ALIGN"/>
+
+
+@code {
+
+    private StackedHandyToast stackedHandyToast = default!;
+    private NotificationModal notificationModal { get; set; }
+
+    private bool doneLoadingLst = false;
+    private ConfirmModal confirmModal = default!;
+
+    private TransactionsGridStateService handyGridState;
+    private List<TransactionsEntity> Items = [];
+    private HttpClient httpClient = default!;
+
+    [Parameter]
+    public List<StreamlinedTransactionDTO> Transactions { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        httpClient = httpClientFactory.CreateClient(Constants.HTTP_CLIENT);
+
+        var items = Transactions
+        .Select(item => new TransactionsEntity(Object: item))
+        .OrderBy(item => item.Object.Id)
+        .ToList();
+        Items = items;
+
+        handyGridState = new(
+        Items: Items,
+        PageSize: 5,
+        CanAddNewItems: false,
+        // AddNewItemsText: "Add more stuff",
+        // Exportable: true,
+        ExampleFileUploadUrl: "templates/example.csv",
+        IsReadonly: false,
+        ShowRowIndex: true,
+        ShowFilters: true,
+
+        ColumnsToHide: [
+        nameof(StreamlinedTransactionDTO.Id),
+nameof(StreamlinedTransactionDTO.UserId),
+nameof(StreamlinedTransactionDTO.EnvironmentType),
+nameof(StreamlinedTransactionDTO.BankInfoId),
+nameof(StreamlinedTransactionDTO.TransactionId),
+        ],
+        ReadonlyColumns: [
+        nameof(StreamlinedTransactionDTO.Id),
+nameof(StreamlinedTransactionDTO.UserId),
+nameof(StreamlinedTransactionDTO.TransactionId),
+nameof(StreamlinedTransactionDTO.Name),
+nameof(StreamlinedTransactionDTO.Category),
+nameof(StreamlinedTransactionDTO.Amount),
+nameof(StreamlinedTransactionDTO.Date),
+nameof(StreamlinedTransactionDTO.EnvironmentType),
+nameof(StreamlinedTransactionDTO.BankInfoId),
+        ],
+        OnUpdate: async (item) =>
+        {
+            var response = await httpClient.PatchAsJsonAsync("api/Dashboard/editTransaction", item.Object);
+            var responseContent = await response.Content.ReadFromJsonAsync<HandyGeneralResponse>();
+            if (!responseContent.Flag)
+            {
+                _ = stackedHandyToast.ShowToastAsync("Error", responseContent.Message, HandyToastType.ERROR);
+            }
+            else
+            {
+                _ = stackedHandyToast.ShowToastAsync("Success", responseContent.Message, HandyToastType.SUCCESS);
+                var idx = Items.FindIndex(o => o.Object.Id == item.Object.Id);
+                if (idx != -1)
+                {
+                    Items[idx] = item;
+                    StateHasChanged();
+                }
+            }
+        },
+        OnDelete: async (item) =>
+        {
+            _ = stackedHandyToast.ShowToastAsync("Error", "Deleting transactions is not allowed.", HandyToastType.ERROR);
+            //StateHasChanged();
+        },
+        EditModeFragments: [
+        ],
+        ViewModeFragments: [
+        ]
+        );
+        doneLoadingLst = true;
+    }
+
+}
