@@ -1,13 +1,13 @@
 ﻿@inherits LayoutComponentBase
 
 <header>
-    <NavMenu />
+    <NavMenu IsDark="@(Theme.CurrentTheme == "dark")" />
 </header>
-<div class="page">
+<div class="@($"theme-{Theme.CurrentTheme.ToLower()}") page">
     @* this bootstrap class combo will help push the footer to stick to the bottom of the page *@
     <main class="d-flex flex-column min-vh-100">
         @* <div class="top-row px-4"> *@
-            @* <a href="https://learn.microsoft.com/aspnet/core/"/ target="_blank">About</a> *@
+        @* <a href="https://learn.microsoft.com/aspnet/core/"/ target="_blank">About</a> *@
         @* </div> *@
 
         <article class="content px-4 app-content">
@@ -15,5 +15,22 @@
         </article>
     </main>
 
-    <Footer />
+    <Footer IsDark="@(Theme.CurrentTheme == "dark")" />
 </div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Theme.OnChange += StateHasChanged;
+
+        var saved = await localStorageService.GetItemAsync<string>("theme");
+
+        if (!string.IsNullOrWhiteSpace(saved))
+            Theme.SetTheme(saved);
+        else
+            Theme.SetTheme("light"); // default without JS
+
+        await base.OnInitializedAsync();
+    }
+
+}

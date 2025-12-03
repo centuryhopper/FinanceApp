@@ -43,6 +43,8 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 
+builder.Services.AddScoped<ThemeService>();
+
 builder.Services.AddLucideIcons();
 
 await builder.Build().RunAsync();

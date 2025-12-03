@@ -9,7 +9,12 @@
 
 @code {
     private int year = DateTime.Now.Year;
-    private bool IsDark = false;
+    [Parameter] public bool IsDark { get; set; }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        StateHasChanged();
+    }
 
     private string FooterClass =>
         IsDark 

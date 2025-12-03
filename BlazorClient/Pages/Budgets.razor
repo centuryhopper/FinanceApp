@@ -1,5 +1,7 @@
 @page "/budgets"
 @using BlazorClient.Components
+@implements IDisposable
+
 
 
 <div class="container m-5 p-5">
@@ -22,16 +24,14 @@
     else
     {
         <div class="d-flex justify-content-center">
-            <div class="card @(IsDark ? "bg-dark bg-gradient text-light" : "bg-gradient")">
+            <div class="card @(theme == "dark" ? "bg-dark bg-gradient text-light" : "bg-gradient")">
                 <div class="card-body">
                     <div class="card-text">
                         @foreach (var spending in Spendings)
                         {
-                            <BudgetsBar Id="@spending.Id"
-                                        Category="@spending.Category"
-                                        Spent="@spending.Spent"
-                                        Budget="@spending.CategoryBudget"
-                                        BudgetLimitChanged="OnBudgetLimitChanged" />
+                            <BudgetsBar Id="@spending.Id" Category="@spending.Category" Spent="@spending.Spent"
+                                Budget="@spending.CategoryBudget" BudgetLimitChanged="OnBudgetLimitChanged"
+                                IsDark="@(Theme.CurrentTheme == "dark")" />
                         }
                     </div>
                 </div>
@@ -42,14 +42,27 @@
 
 @code {
 
+    private string theme => Theme.CurrentTheme;
+
     private readonly string[] MonthNames = new[]
     {
-        "January","February","March","April","May","June","July","August","September","October","November","December"
-    };
+"January","February","March","April","May","June","July","August","September","October","November","December"
+};
 
     private string CurrentMonthString => MonthNames[DateTime.UtcNow.Month - 1];
 
-    private bool IsDark { get; set; } = false; // If you have a theme store, wire this up
+    private void ThemeChanged()
+    {
+        InvokeAsync(StateHasChanged);
+        Console.WriteLine("theme: " + theme);
+    }
+
+    // ⚠ Important: Unsubscribe to prevent memory leaks
+    public void Dispose()
+    {
+        Theme.OnChange -= ThemeChanged;
+    }
+
 
     private string? SelectedBankId;
     private bool SpendingsLoaded = false;
@@ -57,11 +70,15 @@
     private List<CurrentMonthSpendingByCategoryDTO> Spendings = [];
     private HttpClient httpClient;
 
+    
+
     protected override async Task OnInitializedAsync()
     {
         httpClient = httpClientFactory.CreateClient(Constants.HTTP_CLIENT);
         // read selectedBank from sessionStorage like your Vue code
         SelectedBankId = await sessionStorageService.GetItemAsync<string>("selectedBank");
+
+        Theme.OnChange += ThemeChanged;
 
         if (string.IsNullOrWhiteSpace(SelectedBankId))
         {
@@ -105,7 +122,9 @@
             return;
         }
 
-        var resp = await httpClient.PatchAsync($"api/Budgets/edit-budgetcap?categoryId={item.CategoryId}&bankInfoId={int.Parse(SelectedBankId)}&budgetCap={newLimit}", null);
+        var resp = await
+        httpClient.PatchAsync($"api/Budgets/edit-budgetcap?categoryId={item.CategoryId}&bankInfoId={int.Parse(SelectedBankId)}&budgetCap={newLimit}",
+        null);
 
         if (resp.IsSuccessStatusCode)
         {
@@ -113,7 +132,7 @@
             var idx = Spendings.FindIndex(s => s.Id == id);
             if (idx >= 0)
             {
-                Spendings[idx].CategoryBudget = (int) newLimit;
+                Spendings[idx].CategoryBudget = (int)newLimit;
                 StateHasChanged();
             }
         }

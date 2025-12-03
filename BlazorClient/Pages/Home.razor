@@ -26,7 +26,7 @@
             <div class="row g-4">
                 <!-- LEFT COLUMN / BANKS -->
                 <div class="col-md-6">
-                    <div class="card p-3 shadow-sm w-100 h-100 d-flex flex-column" style="max-width: 300px">
+                    <div class="@($"theme-{Theme.CurrentTheme} card p-3 shadow-sm w-100 h-100 d-flex flex-column") " style="max-width: 300px">
                         <h5 class="text-center">My Accounts</h5>
 
                         @if (!BanksLoaded)
@@ -66,7 +66,7 @@
 
                 <!-- RIGHT COLUMN / TRANSACTIONS -->
                 <div class="col-md-6">
-                    <div class="card p-3 shadow-sm w-100 h-100" style="max-width: 500px">
+                    <div class="@($"theme-{Theme.CurrentTheme} card p-3 shadow-sm w-100 h-100")" style="max-width: 500px">
                         <h5 class="mb-3 fw-semibold text-center">Most recent transactions</h5>
 
                         @if (!TransactionsLoaded)

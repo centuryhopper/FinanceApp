@@ -1,65 +1,105 @@
 @page "/settings"
+@using BlazorClient.Services
+@implements IDisposable
+
+
 
 @* <div class="container m-5 p-5"> *@
-    @* <h1 class="fw-bold fs-3 mt-5 mb-3 text-center">Settings</h1> *@
-    <div class="d-flex justify-content-center align-items-center min-vh-100">
-        <div class="card bg-gradient">
-            <div class="card-body">
-                <div class="card-text">
-                    <ul class="list-group" style="width: 15rem;">
-                        @foreach (var sel in Selections)
-                        {
-                            <li style="cursor: pointer" class="list-group-item custom-setting-item d-flex justify-content-between align-items-center"
-                                @onclick="sel.Callback">
-                                @sel.Name
-                                <span class="arrow">&rarr;</span>
-                            </li>
-                        }
-                    </ul>
-                </div>
+@* <h1 class="fw-bold fs-3 mt-5 mb-3 text-center">Settings</h1> *@
+<div class="@($"d-flex justify-content-center align-items-center min-vh-100")">
+    <div class="@($"card bg-gradient custom-setting-card")">
+        <div class="@($"theme-{Theme.CurrentTheme.ToLower()}") card-body">
+            <div class="card-text">
+                <ul class="list-group" style="width: 15rem;">
+                    @foreach (var sel in Selections)
+                    {
+                        <li style="cursor: pointer"
+                            class="list-group-item custom-setting-item d-flex justify-content-between align-items-center @($"theme-{Theme.CurrentTheme.ToLower()}")"
+                            @onclick="sel.Callback">
+                            @sel.Name
+                            <span class="arrow">&rarr;</span>
+                        </li>
+                    }
+                </ul>
             </div>
         </div>
     </div>
+</div>
 @* </div> *@
 @code {
-    private List<SettingItem> Selections = new();
+    private List<SettingItem> Selections = [];
+    private string theme => Theme.CurrentTheme == "light" ? "Dark" : "Light";
+    private SettingItem? ThemeItem;
+
+
+    private void ThemeChanged()
+    {
+        ThemeItem.Name = $"Switch to ({theme})";
+        InvokeAsync(StateHasChanged);
+        Console.WriteLine("theme: " + theme);
+    }
+
+    // ⚠ Important: Unsubscribe to prevent memory leaks
+    public void Dispose()
+    {
+        Theme.OnChange -= ThemeChanged;
+    }
 
     protected override void OnInitialized()
     {
+        // theme = Theme.CurrentTheme == "light" ? "Dark" : "Light";
+        Theme.OnChange += ThemeChanged;
+
+        ThemeItem = new SettingItem($"Switch to ({theme})", ToggleAppearance);
+
         Selections =
         [
-            new SettingItem("App Appearance", ToggleAppearance),
-            new SettingItem("Toggle Two-Factor Authentication", Toggle2FA)
+        ThemeItem,
+new SettingItem("Toggle Two-Factor Authentication", Toggle2FA)
         ];
     }
 
-    private void ToggleAppearance()
+    private async Task ToggleAppearance()
     {
         // Console.WriteLine("toggle app appearance!");
+        Theme.Toggle();
+        await localStorageService.SetItemAsync("theme", Theme.CurrentTheme);
         StateHasChanged();
     }
 
     private async Task Toggle2FA()
     {
         //await Alerts.ConfirmationPopup(
-        //    "Notice",
-        //    "2FA is currently disabled. Would you like to enable it?",
-        //    async () =>
-        //    {
-        //        await Task.Delay(1);
-        //        Console.WriteLine("enabled 2fa!");
-        //    },
-        //    async () =>
-        //    {
-        //        await Task.Delay(1);
-        //        Console.WriteLine("cancelled enabling 2fa!");
-        //    }
+        // "Notice",
+        // "2FA is currently disabled. Would you like to enable it?",
+        // async () =>
+        // {
+        // await Task.Delay(1);
+        // Console.WriteLine("enabled 2fa!");
+        // },
+        // async () =>
+        // {
+        // await Task.Delay(1);
+        // Console.WriteLine("cancelled enabling 2fa!");
+        // }
         //);
     }
 
-    public record SettingItem(string Name, Func<Task> Callback)
+    public class SettingItem
     {
+        public string Name { get; set; }
+        public Func<Task> Callback { get; }
+
+        public SettingItem(string name, Func<Task> callback)
+        {
+            Name = name;
+            Callback = callback;
+        }
+
         public SettingItem(string name, Action callback)
-            : this(name, () => { callback(); return Task.CompletedTask; }) { }
+        {
+            Name = name;
+            Callback = () => { callback(); return Task.CompletedTask; };
+        }
     }
 }

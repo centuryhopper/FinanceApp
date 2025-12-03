@@ -2,6 +2,22 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+.theme-light {
+    --bg: #ffffff;
+    --text: #000000;
+}
+
+.theme-dark {
+    --bg: #121212;
+    --text: #ffffff;
+}
+
+body, .theme-light, .theme-dark {
+    background-color: var(--bg);
+    color: var(--text);
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
 h1:focus {
     outline: none;
 }
