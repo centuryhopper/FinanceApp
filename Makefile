@@ -13,7 +13,7 @@ run:
 	/home/leo_zhang/.dotnet/dotnet watch run
 
 deploy:
-	clean
+	$(MAKE) clean
 
 	# Publish and copy over published contents to server
 	cd ./Client && \
@@ -29,7 +29,7 @@ deploy:
 
 	# Git commit and push
 	git add .
-	git commit -m "$(m)" || echo "Nothing to commit"
+	git commit -m "deployed $(date)" || echo "Nothing to commit"
 	git push
 
 
